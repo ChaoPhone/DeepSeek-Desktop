@@ -1,0 +1,20 @@
+{
+  "name": "DS",
+  "version": "1.0.0",
+  "description": "DeepSeek Desktop Floating Ball - Quick access to DeepSeek Chat",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.0.0",
+    "icon-gen": "^5.0.0",
+    "sharp": "^0.34.5"
+  },
+  "dependencies": {
+    "electron-store": "^10.0.0"
+  }
+}

@@ -1,0 +1,29 @@
+appId: com.deepseek.desktop
+productName: DeepSeek Desktop
+copyright: Copyright 2026
+
+directories:
+  output: build
+  buildResources: assets
+
+files:
+  - src/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  icon: assets/app.ico
+  artifactName: DeepSeek-Desktop-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: DeepSeek Desktop
+
+extraMetadata:
+  main: src/main/index.js
