@@ -1,6 +1,23 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+// 获取图标 base64（兼容开发和打包环境）
+function getIconBase64() {
+  const iconPath = path.join(__dirname, '../../assets/icon.png');
+  try {
+    const data = fs.readFileSync(iconPath);
+    return 'data:image/png;base64,' + data.toString('base64');
+  } catch (e) {
+    // fallback: 空
+    return '';
+  }
+}
+
+const iconBase64 = getIconBase64();
 
 contextBridge.exposeInMainWorld('deepseekAPI', {
+  getIconBase64: () => iconBase64,
   openChatWindow: () => ipcRenderer.invoke('ball:click'),
 
   moveWindow: (dx, dy) => ipcRenderer.send('ball:move-window', { dx, dy }),

@@ -1,4 +1,8 @@
 const ball = document.getElementById('ball');
+const ballIcon = document.getElementById('ball-icon');
+
+// 动态设置图标（兼容开发和打包环境）
+ballIcon.src = window.deepseekAPI.getIconBase64();
 
 let dragging = false;
 let startScreenX = 0;

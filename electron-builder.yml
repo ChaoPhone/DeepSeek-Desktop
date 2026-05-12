@@ -8,6 +8,7 @@ directories:
 
 files:
   - src/**/*
+  - assets/**/*
   - package.json
 
 win:
@@ -17,13 +18,17 @@ win:
     - target: portable
       arch: [x64]
   icon: assets/app.ico
-  artifactName: DeepSeek-Desktop-Setup-${version}.${ext}
+  artifactName: ${productName}-${version}-${arch}.${ext}
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   shortcutName: DeepSeek Desktop
+  artifactName: DeepSeek-Desktop-Setup-${version}.${ext}
+
+portable:
+  artifactName: DeepSeek-Desktop-Portable-${version}.${ext}
 
 extraMetadata:
   main: src/main/index.js
