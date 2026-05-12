@@ -21,7 +21,9 @@ function openNewChatWindow(savedBounds = null) {
     minHeight: defaults.minHeight,
     frame: false,
     show: false,
-    autoHideMenuBar: true,  // 隐藏菜单栏，防止Windows上出现白色条
+    transparent: true,
+    backgroundColor: '#00000000',
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/chatPreload.js'),
       contextIsolation: true,
@@ -89,7 +91,8 @@ function openNewChatWindow(savedBounds = null) {
         background: rgba(220,50,50,0.85);
       }
       /* 确保页面内容不被拖动区域遮挡 */
-      body { padding-top: 36px !important; }
+      body { padding-top: 36px !important; background: transparent !important; }
+      html { background: transparent !important; }
     `);
     win.webContents.executeJavaScript(`
       if (!document.getElementById('ds-drag-zone')) {
@@ -110,6 +113,7 @@ function openNewChatWindow(savedBounds = null) {
 
   win.once('ready-to-show', () => {
     win.show();
+    win.focus();
   });
 
   win.on('closed', () => {
