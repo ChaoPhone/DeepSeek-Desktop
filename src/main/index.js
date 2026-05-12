@@ -2,6 +2,8 @@ const { app } = require('electron');
 
 // Prevent transparent window rendering artifacts on Windows
 app.commandLine.appendSwitch('disable-software-rasterizer');
+// Disable Windows 11 Snap Layouts to prevent white strip on frameless windows
+app.commandLine.appendSwitch('disable-features', 'Windows11SnapLayouts');
 
 const path = require('path');
 const fs = require('fs');
