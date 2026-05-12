@@ -1,0 +1,76 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 36px;
+  background: transparent;
+  overflow: hidden;
+  -webkit-user-select: none;
+}
+
+#drag-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: linear-gradient(180deg, rgba(30,58,95,0.85) 0%, rgba(30,58,95,0.4) 100%);
+  border-radius: 0 0 12px 12px;
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+#drag-indicator {
+  width: 40px;
+  height: 4px;
+  margin-top: 6px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 2px;
+}
+
+#pin-btn, #close-btn {
+  position: fixed;
+  top: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  line-height: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-app-region: no-drag;
+}
+
+#pin-btn {
+  right: 40px;
+}
+
+#pin-btn:hover {
+  background: rgba(0,0,0,0.55);
+}
+
+#pin-btn.pinned {
+  background: rgba(74,144,217,0.85);
+}
+
+#pin-btn.pinned:hover {
+  background: rgba(74,144,217,1);
+}
+
+#close-btn {
+  right: 8px;
+}
+
+#close-btn:hover {
+  background: rgba(220,50,50,0.85);
+}

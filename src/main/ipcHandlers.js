@@ -1,6 +1,6 @@
 const { ipcMain, BrowserWindow, screen } = require('electron');
 const { get, set } = require('./config');
-const { openNewChatWindow } = require('./chatWindow');
+const { openNewChatWindow, getViewById } = require('./chatWindow');
 const { showContextMenu } = require('./contextMenu');
 const { setAutoLaunch } = require('./autoLaunch');
 const { getBallWindow, updateBallSize } = require('./floatingBall');
@@ -75,26 +75,33 @@ function registerIpcHandlers() {
   });
 
   ipcMain.on('window:zoom-request', (event, direction) => {
+    // Zoom操作在BrowserView上进行
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return;
-    const currentFactor = win.webContents.getZoomFactor();
+    const view = getViewById(win.chatWindowId);
+    if (!view) return;
+    const currentFactor = view.webContents.getZoomFactor();
     const step = 0.1;
     const newFactor = direction === 'in'
       ? Math.min(3.0, currentFactor + step)
       : Math.max(0.5, currentFactor - step);
-    win.webContents.setZoomFactor(newFactor);
+    view.webContents.setZoomFactor(newFactor);
     set('zoomLevel', newFactor);
   });
 
   ipcMain.handle('window:get-zoom', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    return win ? win.webContents.getZoomFactor() : 1.0;
+    if (!win) return 1.0;
+    const view = getViewById(win.chatWindowId);
+    return view ? view.webContents.getZoomFactor() : 1.0;
   });
 
   ipcMain.handle('window:set-zoom', (event, factor) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win) {
-      win.webContents.setZoomFactor(factor);
+    if (!win) return false;
+    const view = getViewById(win.chatWindowId);
+    if (view) {
+      view.webContents.setZoomFactor(factor);
     }
     return true;
   });

@@ -5,6 +5,16 @@ const { get, set } = require('./config');
 let ballWin = null;
 let moveTimer = null;
 
+// 强制重绘悬浮球窗口，解决白色条问题
+function refreshBallWindow() {
+  if (ballWin && !ballWin.isDestroyed()) {
+    ballWin.setBackgroundColor('#00000000');
+    // 通过隐藏+显示触发GPU重绘
+    ballWin.hide();
+    ballWin.show();
+  }
+}
+
 function createFloatingBall() {
   const size = get('ballSize');
   const pos = get('ballPosition');
@@ -44,12 +54,11 @@ function createFloatingBall() {
   const htmlPath = path.join(__dirname, '../renderer/floating-ball/index.html');
   ballWin.loadFile(htmlPath);
 
-  // Aggressively clear title to prevent Windows compositor from rendering it
+  // 清除标题防止Windows渲染器显示
   const clearTitle = () => {
     if (ballWin && !ballWin.isDestroyed()) ballWin.setTitle('');
   };
 
-  // Fire multiple times during initial render to catch all compositor frames
   clearTitle();
   setTimeout(clearTitle, 50);
   setTimeout(clearTitle, 150);
@@ -58,6 +67,11 @@ function createFloatingBall() {
 
   ballWin.on('show', clearTitle);
   ballWin.on('focus', clearTitle);
+
+  // 焦点变化时强制重绘，防止白色条
+  ballWin.on('blur', () => {
+    setTimeout(refreshBallWindow, 50);
+  });
 
   ballWin.show();
 
@@ -88,4 +102,4 @@ function updateBallSize(size) {
   }
 }
 
-module.exports = { createFloatingBall, getBallWindow, updateBallSize };
+module.exports = { createFloatingBall, getBallWindow, updateBallSize, refreshBallWindow };

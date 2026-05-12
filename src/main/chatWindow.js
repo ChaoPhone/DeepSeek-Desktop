@@ -1,7 +1,9 @@
-const { BrowserWindow, session } = require('electron');
+const { BrowserWindow, BrowserView } = require('electron');
 const path = require('path');
+const { refreshBallWindow } = require('./floatingBall');
 
 const windows = new Map();
+const views = new Map();
 let nextId = 1;
 
 function openNewChatWindow(savedBounds = null) {
@@ -12,6 +14,7 @@ function openNewChatWindow(savedBounds = null) {
     minHeight: 400
   };
 
+  // 主窗口使用Mica背景，避免白色边框问题
   const win = new BrowserWindow({
     width: savedBounds?.width || defaults.width,
     height: savedBounds?.height || defaults.height,
@@ -20,8 +23,12 @@ function openNewChatWindow(savedBounds = null) {
     minWidth: defaults.minWidth,
     minHeight: defaults.minHeight,
     frame: false,
+    transparent: false,
+    backgroundMaterial: 'mica',
+    hasShadow: true,
+    thickFrame: true,
+    resizable: true,
     show: false,
-    autoHideMenuBar: true,  // 隐藏菜单栏，防止Windows上出现白色条
     webPreferences: {
       preload: path.join(__dirname, '../preload/chatPreload.js'),
       contextIsolation: true,
@@ -30,129 +37,37 @@ function openNewChatWindow(savedBounds = null) {
     }
   });
 
-  win.removeMenu();
-
-  win.loadURL('https://chat.deepseek.com');
+  // 加载控制栏HTML（包含拖动区域和按钮）
+  const controlHtmlPath = path.join(__dirname, '../renderer/chat-control/index.html');
+  win.loadFile(controlHtmlPath);
 
   const id = nextId++;
   win.chatWindowId = id;
   windows.set(id, win);
 
-  win.webContents.on('did-finish-load', () => {
-    win.webContents.insertCSS(`
-      /* 顶部灵动岛拖动区域 */
-      #ds-drag-zone {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 36px;
-        z-index: 99998;
-        -webkit-app-region: drag;
-        background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0) 100%);
-        border-radius: 0 0 12px 12px;
-        pointer-events: auto;
-      }
-      /* 灵动岛内部指示条 */
-      #ds-drag-zone::after {
-        content: '';
-        position: absolute;
-        top: 6px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 40px;
-        height: 4px;
-        background: rgba(0,0,0,0.25);
-        border-radius: 2px;
-      }
-      /* 置顶按钮 */
-      #ds-pin-btn {
-        position: fixed;
-        top: 8px;
-        right: 40px;
-        z-index: 99999;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: rgba(0,0,0,0.35);
-        color: #fff;
-        border: none;
-        font-size: 14px;
-        line-height: 24px;
-        text-align: center;
-        cursor: pointer;
-        font-family: sans-serif;
-        transition: background 0.15s;
-        -webkit-app-region: no-drag;
-      }
-      #ds-pin-btn:hover {
-        background: rgba(0,0,0,0.55);
-      }
-      #ds-pin-btn.pinned {
-        background: rgba(74,144,217,0.85);
-      }
-      #ds-pin-btn.pinned:hover {
-        background: rgba(74,144,217,1);
-      }
-      /* 关闭按钮 */
-      #ds-close-btn {
-        position: fixed;
-        top: 8px;
-        right: 8px;
-        z-index: 99999;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: rgba(0,0,0,0.35);
-        color: #fff;
-        border: none;
-        font-size: 14px;
-        line-height: 24px;
-        text-align: center;
-        cursor: pointer;
-        font-family: sans-serif;
-        transition: background 0.15s;
-        -webkit-app-region: no-drag;
-      }
-      #ds-close-btn:hover {
-        background: rgba(220,50,50,0.85);
-      }
-      /* 确保页面内容不被拖动区域遮挡 */
-      body { padding-top: 36px !important; }
-    `);
-    win.webContents.executeJavaScript(`
-      if (!document.getElementById('ds-drag-zone')) {
-        const dragZone = document.createElement('div');
-        dragZone.id = 'ds-drag-zone';
-        document.body.appendChild(dragZone);
-      }
-      if (!document.getElementById('ds-pin-btn')) {
-        const pinBtn = document.createElement('button');
-        pinBtn.id = 'ds-pin-btn';
-        pinBtn.innerHTML = '&#128204;';
-        pinBtn.title = 'Toggle Pin';
-        pinBtn.onclick = async () => {
-          const isPinned = await window.chatAPI.togglePin();
-          pinBtn.classList.toggle('pinned', isPinned);
-          pinBtn.title = isPinned ? 'Unpin' : 'Pin';
-        };
-        window.chatAPI.isPinned().then(pinned => {
-          if (pinned) {
-            pinBtn.classList.add('pinned');
-            pinBtn.title = 'Unpin';
-          }
-        });
-        document.body.appendChild(pinBtn);
-      }
-      if (!document.getElementById('ds-close-btn')) {
-        const btn = document.createElement('button');
-        btn.id = 'ds-close-btn';
-        btn.innerHTML = '&#x2715;';
-        btn.title = 'Close (Ctrl+W)';
-        btn.onclick = () => window.close();
-        document.body.appendChild(btn);
-      }
-    `).catch(() => {});
+  // 创建BrowserView加载实际网页内容
+  const view = new BrowserView({
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  });
+  win.setBrowserView(view);
+  views.set(id, view);
+
+  // BrowserView位于拖动区域下方
+  const [width, height] = win.getSize();
+  view.setBounds({ x: 0, y: 36, width: width, height: height - 36 });
+  view.setAutoResize({ width: true, height: true });
+  view.webContents.loadURL('https://chat.deepseek.com');
+
+  // 窗口大小变化时更新BrowserView
+  win.on('resize', () => {
+    const [w, h] = win.getSize();
+    if (view && !view.webContents.isDestroyed()) {
+      view.setBounds({ x: 0, y: 36, width: w, height: h - 36 });
+    }
   });
 
   win.once('ready-to-show', () => {
@@ -160,7 +75,15 @@ function openNewChatWindow(savedBounds = null) {
   });
 
   win.on('closed', () => {
+    views.delete(win.chatWindowId);
     windows.delete(win.chatWindowId);
+    // 刷新悬浮球窗口，防止白色条
+    setTimeout(refreshBallWindow, 100);
+  });
+
+  // 窗口失去焦点时刷新悬浮球
+  win.on('blur', () => {
+    setTimeout(refreshBallWindow, 50);
   });
 
   return id;
@@ -174,23 +97,29 @@ function getChatWindowById(id) {
   return windows.get(id);
 }
 
+function getViewById(id) {
+  return views.get(id);
+}
+
 function closeAllChatWindows() {
   windows.forEach((win) => {
     if (!win.isDestroyed()) win.close();
   });
   windows.clear();
+  views.clear();
 }
 
 function saveAllBounds() {
   const bounds = [];
   windows.forEach((win) => {
     if (!win.isDestroyed()) {
+      const view = views.get(win.chatWindowId);
       bounds.push({
         x: win.getBounds().x,
         y: win.getBounds().y,
         width: win.getBounds().width,
         height: win.getBounds().height,
-        zoomFactor: win.webContents.getZoomFactor()
+        zoomFactor: view ? view.webContents.getZoomFactor() : 1.0
       });
     }
   });
@@ -201,6 +130,7 @@ module.exports = {
   openNewChatWindow,
   getAllChatWindows,
   getChatWindowById,
+  getViewById,
   closeAllChatWindows,
   saveAllBounds
 };
