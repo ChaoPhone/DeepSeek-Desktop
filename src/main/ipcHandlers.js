@@ -98,6 +98,19 @@ function registerIpcHandlers() {
     }
     return true;
   });
+
+  ipcMain.handle('window:toggle-pin', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    const isPinned = win.isAlwaysOnTop();
+    win.setAlwaysOnTop(!isPinned, 'screen-saver');
+    return !isPinned;
+  });
+
+  ipcMain.handle('window:is-pinned', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return win ? win.isAlwaysOnTop() : false;
+  });
 }
 
 module.exports = { registerIpcHandlers };

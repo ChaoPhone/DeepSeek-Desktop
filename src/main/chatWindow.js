@@ -65,6 +65,35 @@ function openNewChatWindow(savedBounds = null) {
         background: rgba(0,0,0,0.25);
         border-radius: 2px;
       }
+      /* 置顶按钮 */
+      #ds-pin-btn {
+        position: fixed;
+        top: 8px;
+        right: 40px;
+        z-index: 99999;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.35);
+        color: #fff;
+        border: none;
+        font-size: 14px;
+        line-height: 24px;
+        text-align: center;
+        cursor: pointer;
+        font-family: sans-serif;
+        transition: background 0.15s;
+        -webkit-app-region: no-drag;
+      }
+      #ds-pin-btn:hover {
+        background: rgba(0,0,0,0.55);
+      }
+      #ds-pin-btn.pinned {
+        background: rgba(74,144,217,0.85);
+      }
+      #ds-pin-btn.pinned:hover {
+        background: rgba(74,144,217,1);
+      }
       /* 关闭按钮 */
       #ds-close-btn {
         position: fixed;
@@ -83,7 +112,7 @@ function openNewChatWindow(savedBounds = null) {
         cursor: pointer;
         font-family: sans-serif;
         transition: background 0.15s;
-        -webkit-app-region: no-drag;  /* 确保按钮可点击 */
+        -webkit-app-region: no-drag;
       }
       #ds-close-btn:hover {
         background: rgba(220,50,50,0.85);
@@ -96,6 +125,24 @@ function openNewChatWindow(savedBounds = null) {
         const dragZone = document.createElement('div');
         dragZone.id = 'ds-drag-zone';
         document.body.appendChild(dragZone);
+      }
+      if (!document.getElementById('ds-pin-btn')) {
+        const pinBtn = document.createElement('button');
+        pinBtn.id = 'ds-pin-btn';
+        pinBtn.innerHTML = '&#128204;';
+        pinBtn.title = 'Toggle Pin';
+        pinBtn.onclick = async () => {
+          const isPinned = await window.chatAPI.togglePin();
+          pinBtn.classList.toggle('pinned', isPinned);
+          pinBtn.title = isPinned ? 'Unpin' : 'Pin';
+        };
+        window.chatAPI.isPinned().then(pinned => {
+          if (pinned) {
+            pinBtn.classList.add('pinned');
+            pinBtn.title = 'Unpin';
+          }
+        });
+        document.body.appendChild(pinBtn);
       }
       if (!document.getElementById('ds-close-btn')) {
         const btn = document.createElement('button');

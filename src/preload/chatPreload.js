@@ -11,5 +11,7 @@ document.addEventListener('wheel', (event) => {
 
 contextBridge.exposeInMainWorld('chatAPI', {
   getZoomFactor: () => ipcRenderer.invoke('window:get-zoom'),
-  setZoomFactor: (factor) => ipcRenderer.invoke('window:set-zoom', factor)
+  setZoomFactor: (factor) => ipcRenderer.invoke('window:set-zoom', factor),
+  togglePin: () => ipcRenderer.invoke('window:toggle-pin'),
+  isPinned: () => ipcRenderer.invoke('window:is-pinned')
 });
