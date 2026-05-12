@@ -62,6 +62,13 @@ function openNewChatWindow(savedBounds = null) {
   view.setAutoResize({ width: true, height: true });
   view.webContents.loadURL('https://chat.deepseek.com');
 
+  // 监听网页title变化，同步到控制栏
+  view.webContents.on('page-title-updated', (event, title) => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('title:update', title);
+    }
+  });
+
   // 窗口大小变化时更新BrowserView
   win.on('resize', () => {
     const [w, h] = win.getSize();

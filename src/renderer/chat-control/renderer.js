@@ -1,5 +1,14 @@
 const pinBtn = document.getElementById('pin-btn');
 const closeBtn = document.getElementById('close-btn');
+const titleEl = document.getElementById('title');
+
+// 监听网页title更新
+window.chatAPI.onTitleUpdate((title) => {
+  if (titleEl && title) {
+    // 截断过长的title
+    titleEl.textContent = title.length > 30 ? title.slice(0, 30) + '...' : title;
+  }
+});
 
 // 置顶按钮
 pinBtn.addEventListener('click', async () => {
