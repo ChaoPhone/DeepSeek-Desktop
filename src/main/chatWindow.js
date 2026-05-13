@@ -137,6 +137,15 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
     setTimeout(refreshBallWindow, 50);
   });
 
+  // 窗口最大化状态变化时通知控制栏更新图标（双击标题栏等触发）
+  win.on('maximize', () => {
+    win.webContents.send('maximize:update', true);
+  });
+
+  win.on('unmaximize', () => {
+    win.webContents.send('maximize:update', false);
+  });
+
   return id;
 }
 

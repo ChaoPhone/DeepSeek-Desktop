@@ -156,15 +156,46 @@ function registerIpcHandlers() {
 
   ipcMain.handle('window:toggle-maximize', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win) return false;
-    if (win.isMaximized()) {
-      win.unmaximize();
-      return false;
-    } else {
-      win.maximize();
-      return true;
-    }
+    return toggleMaximize(win);
+  });
+
+  ipcMain.handle('window:is-maximized', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return isMaximized(win);
   });
 }
 
-module.exports = { registerIpcHandlers };
+// 存储窗口最大化前的 bounds（放在模块级别，不在函数内）
+const savedWindowBounds = new Map();
+
+function toggleMaximize(win) {
+  if (!win) return false;
+
+  const winId = win.id;
+
+  if (savedWindowBounds.has(winId)) {
+    // 还原窗口
+    const bounds = savedWindowBounds.get(winId);
+    win.setSize(bounds.width, bounds.height);
+    win.setPosition(bounds.x, bounds.y);
+    savedWindowBounds.delete(winId);
+    win.webContents.send('maximize:update', false);
+    return false;
+  } else {
+    // 最大化窗口
+    savedWindowBounds.set(winId, win.getBounds());
+    const display = screen.getPrimaryDisplay();
+    const workArea = display.workArea;
+    win.setSize(workArea.width, workArea.height);
+    win.setPosition(workArea.x, workArea.y);
+    win.webContents.send('maximize:update', true);
+    return true;
+  }
+}
+
+function isMaximized(win) {
+  if (!win) return false;
+  return savedWindowBounds.has(win.id);
+}
+
+module.exports = { registerIpcHandlers, toggleMaximize, isMaximized };
