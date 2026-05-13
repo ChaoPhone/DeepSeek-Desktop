@@ -1,10 +1,10 @@
 <div align="center">
 
-  <img src="image/everybody.png" alt="DeepSeek Desktop" width="300">
+  <img src="image/everybody.png" alt="DeepSeek Desktop" width="600">
 
   <h1>DeepSeek Desktop</h1>
 
-  <p><strong>告别 API 费用，一键直达多个 AI！</strong></p>
+  <p><strong>告别 API 费用，一个悬浮球直达多个 AI！</strong></p>
 
   <p>
     <a href="https://github.com/ChaoPhone/DeepSeek-Desktop/releases">⬇️ 下载</a> •

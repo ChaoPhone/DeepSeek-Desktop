@@ -3,6 +3,8 @@ const pinIconUnpinned = document.getElementById('pin-icon-unpinned');
 const pinIconPinned = document.getElementById('pin-icon-pinned');
 const minimizeBtn = document.getElementById('minimize-btn');
 const maximizeBtn = document.getElementById('maximize-btn');
+const maximizeIcon = document.getElementById('maximize-icon');
+const restoreIcon = document.getElementById('restore-icon');
 const closeBtn = document.getElementById('close-btn');
 const titleEl = document.getElementById('title');
 const dragZone = document.getElementById('drag-zone');
@@ -31,6 +33,18 @@ function updatePinIcon(isPinned) {
   pinBtn.title = isPinned ? '取消置顶' : '置顶窗口';
 }
 
+// 更新最大化图标状态
+function updateMaximizeIcon(isMaximized) {
+  maximizeIcon.style.display = isMaximized ? 'none' : 'block';
+  restoreIcon.style.display = isMaximized ? 'block' : 'none';
+  maximizeBtn.title = isMaximized ? '还原' : '最大化';
+}
+
+// 监听窗口最大化状态变化（双击标题栏等）
+window.chatAPI.onMaximizeUpdate((isMaximized) => {
+  updateMaximizeIcon(isMaximized);
+});
+
 // 置顶按钮
 pinBtn.addEventListener('click', async () => {
   const isPinned = await window.chatAPI.togglePin();
@@ -50,7 +64,12 @@ minimizeBtn.addEventListener('click', () => {
 // 最大化按钮
 maximizeBtn.addEventListener('click', async () => {
   const isMaximized = await window.chatAPI.toggleMaximize();
-  maximizeBtn.title = isMaximized ? '还原' : '最大化';
+  updateMaximizeIcon(isMaximized);
+});
+
+// 初始化最大化状态
+window.chatAPI.isMaximized().then(maximized => {
+  updateMaximizeIcon(maximized);
 });
 
 // 关闭按钮

@@ -16,10 +16,14 @@ contextBridge.exposeInMainWorld('chatAPI', {
   isPinned: () => ipcRenderer.invoke('window:is-pinned'),
   minimize: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
+  isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
   onTitleUpdate: (callback) => {
     ipcRenderer.on('title:update', (event, title) => callback(title));
   },
   onBrandColorUpdate: (callback) => {
     ipcRenderer.on('brand-color:update', (event, color) => callback(color));
+  },
+  onMaximizeUpdate: (callback) => {
+    ipcRenderer.on('maximize:update', (event, isMaximized) => callback(isMaximized));
   }
 });
