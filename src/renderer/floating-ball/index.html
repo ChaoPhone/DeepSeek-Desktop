@@ -6,7 +6,23 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="ball"><img id="ball-icon" alt=""></div>
+  <div id="ball-container">
+    <div id="ball"><img id="ball-icon" alt=""></div>
+    <div id="mini-balls">
+      <div class="mini-ball" data-ai="gpt">
+        <img class="mini-icon" alt="GPT">
+        <span class="mini-label">GPT</span>
+      </div>
+      <div class="mini-ball" data-ai="gemini">
+        <img class="mini-icon" alt="Gemini">
+        <span class="mini-label">GE</span>
+      </div>
+      <div class="mini-ball" data-ai="glm">
+        <img class="mini-icon" alt="GLM">
+        <span class="mini-label">GLM</span>
+      </div>
+    </div>
+  </div>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -1,15 +1,38 @@
-const { BrowserWindow, BrowserView } = require('electron');
+const { BrowserWindow, BrowserView, app } = require('electron');
 const path = require('path');
 const { refreshBallWindow } = require('./floatingBall');
+const { AI_SITES, getAIConfig } = require('./aiConfig');
+const { get } = require('./config');
 
 const windows = new Map();
 const views = new Map();
 let nextId = 1;
 
-function openNewChatWindow(savedBounds = null) {
+// 为不同 AI 设置不同的 App User Model ID（让任务栏分开显示）
+const APP_MODEL_IDS = {
+  deepseek: 'DeepSeek.Desktop.Chat',
+  gpt: 'DeepSeek.Desktop.ChatGPT',
+  gemini: 'DeepSeek.Desktop.Gemini',
+  glm: 'DeepSeek.Desktop.GLM'
+};
+
+function openNewChatWindow(savedBounds = null, aiKey = null) {
+  // 获取当前默认 AI 或指定 AI
+  const currentAI = aiKey || get('currentAI') || 'deepseek';
+  const aiConfig = getAIConfig(currentAI);
+
+  // 设置特定的 App User Model ID（让任务栏识别为不同应用）
+  const appModelId = APP_MODEL_IDS[currentAI] || APP_MODEL_IDS.deepseek;
+  app.setAppUserModelId(appModelId);
+
+  // 基础默认尺寸
+  const baseWidth = 420;
+  const baseHeight = 700;
+
+  // 智谱 GLM 宽度增加 1/5
   const defaults = {
-    width: 420,
-    height: 700,
+    width: currentAI === 'glm' ? Math.round(baseWidth * 1.2) : baseWidth,
+    height: baseHeight,
     minWidth: 320,
     minHeight: 400
   };
@@ -29,6 +52,9 @@ function openNewChatWindow(savedBounds = null) {
     thickFrame: true,
     resizable: true,
     show: false,
+    title: aiConfig.name,
+    icon: path.join(__dirname, '../../assets/ai_figure', aiConfig.icon),
+    skipTaskbar: false, // 确保显示在任务栏
     webPreferences: {
       preload: path.join(__dirname, '../preload/chatPreload.js'),
       contextIsolation: true,
@@ -43,7 +69,11 @@ function openNewChatWindow(savedBounds = null) {
 
   const id = nextId++;
   win.chatWindowId = id;
+  win.aiKey = currentAI;
   windows.set(id, win);
+
+  // 设置窗口标题和任务栏信息
+  win.setTitle(aiConfig.name);
 
   // 创建BrowserView加载实际网页内容
   const view = new BrowserView({
@@ -60,7 +90,7 @@ function openNewChatWindow(savedBounds = null) {
   const [width, height] = win.getSize();
   view.setBounds({ x: 0, y: 36, width: width, height: height - 36 });
   view.setAutoResize({ width: true, height: true });
-  view.webContents.loadURL('https://chat.deepseek.com');
+  view.webContents.loadURL(aiConfig.url);
 
   // 监听网页title变化，同步到控制栏
   view.webContents.on('page-title-updated', (event, title) => {

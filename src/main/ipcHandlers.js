@@ -11,6 +11,11 @@ function registerIpcHandlers() {
     return { windowId: id };
   });
 
+  ipcMain.handle('ball:click-ai', (event, aiKey) => {
+    const id = openNewChatWindow(null, aiKey);
+    return { windowId: id };
+  });
+
   ipcMain.on('ball:move-window', (event, { dx, dy }) => {
     const ballWin = getBallWindow();
     if (ballWin && !ballWin.isDestroyed()) {
@@ -20,25 +25,35 @@ function registerIpcHandlers() {
   });
 
   ipcMain.on('ball:drag-end', (event, { x, y }) => {
-    // Edge snapping: snap to nearest screen edge if within 30px
+    // x, y 是窗口左上角位置，需要转换为主球中心位置
     const ballWin = getBallWindow();
     if (ballWin && !ballWin.isDestroyed()) {
-      const display = screen.getDisplayNearestPoint({ x, y });
+      const bounds = ballWin.getBounds();
+      // 计算主球中心位置（窗口中心）
+      const centerX = x + bounds.width / 2;
+      const centerY = y + bounds.height / 2;
+
+      const display = screen.getDisplayNearestPoint({ x: centerX, y: centerY });
       const wa = display.workArea;
-      const size = get('ballSize');
       const threshold = 30;
 
-      let sx = x, sy = y;
-      if (x - wa.x < threshold) sx = wa.x;
-      else if (wa.x + wa.width - (x + size) < threshold) sx = wa.x + wa.width - size;
-      if (y - wa.y < threshold) sy = wa.y;
-      else if (wa.y + wa.height - (y + size) < threshold) sy = wa.y + wa.height - size;
+      let sx = centerX, sy = centerY;
+      if (centerX - wa.x < threshold) sx = wa.x + threshold;
+      else if (wa.x + wa.width - centerX < threshold) sx = wa.x + wa.width - threshold;
+      if (centerY - wa.y < threshold) sy = wa.y + threshold;
+      else if (wa.y + wa.height - centerY < threshold) sy = wa.y + wa.height - threshold;
 
-      if (sx !== x || sy !== y) {
-        ballWin.setPosition(sx, sy);
-      }
+      // 保存主球中心位置
       set('ballPosition', { x: sx, y: sy });
+
+      // 如果有边缘吸附，调整窗口位置
+      if (sx !== centerX || sy !== centerY) {
+        const newWindowX = sx - bounds.width / 2;
+        const newWindowY = sy - bounds.height / 2;
+        ballWin.setPosition(newWindowX, newWindowY);
+      }
     } else {
+      // 没有窗口时，假设传入的是中心位置
       set('ballPosition', { x, y });
     }
   });
@@ -132,6 +147,18 @@ function registerIpcHandlers() {
       win.minimize();
     }
     return true;
+  });
+
+  ipcMain.handle('window:toggle-maximize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    if (win.isMaximized()) {
+      win.unmaximize();
+      return false;
+    } else {
+      win.maximize();
+      return true;
+    }
   });
 }
 

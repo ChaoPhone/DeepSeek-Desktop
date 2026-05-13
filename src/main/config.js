@@ -34,6 +34,11 @@ const schema = {
   lastWindows: {
     type: 'array',
     default: []
+  },
+  currentAI: {
+    type: 'string',
+    default: 'deepseek',
+    enum: ['deepseek', 'gpt', 'gemini', 'glm']
   }
 };
 
