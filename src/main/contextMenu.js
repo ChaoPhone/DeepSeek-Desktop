@@ -9,24 +9,23 @@ function showContextMenu(ballWin) {
   const config = get();
   const currentAI = config.currentAI || 'deepseek';
 
+  // AI 切换菜单项（扁平化显示）
+  const aiMenuItems = Object.keys(AI_SITES).map(key => ({
+    label: AI_SITES[key].name + (currentAI === key ? ' ✓' : ''),
+    click: () => {
+      if (currentAI === key) return; // 已选中则不操作
+      set('currentAI', key);
+      // 广播配置变化，刷新悬浮球
+      const ballWin = getBallWindow();
+      if (ballWin && !ballWin.isDestroyed()) {
+        ballWin.webContents.send('config:changed', get());
+        refreshBallWindow();
+      }
+    }
+  }));
+
   const template = [
-    {
-      label: '切换默认 AI',
-      submenu: Object.keys(AI_SITES).map(key => ({
-        label: AI_SITES[key].name,
-        type: 'radio',
-        checked: currentAI === key,
-        click: () => {
-          set('currentAI', key);
-          // 广播配置变化，刷新悬浮球
-          const ballWin = getBallWindow();
-          if (ballWin && !ballWin.isDestroyed()) {
-            ballWin.webContents.send('config:changed', get());
-            refreshBallWindow();
-          }
-        }
-      }))
-    },
+    ...aiMenuItems,
     { type: 'separator' },
     {
       label: '开机自启',
@@ -54,6 +53,11 @@ function showContextMenu(ballWin) {
 
   const menu = Menu.buildFromTemplate(template);
   menu.popup({ window: ballWin });
+
+  // 菜单关闭后刷新悬浮球，避免渲染残留
+  menu.on('menu-will-close', () => {
+    setTimeout(refreshBallWindow, 50);
+  });
 }
 
 let settingsWin = null;
@@ -66,7 +70,7 @@ function openSettingsWindow() {
 
   settingsWin = new BrowserWindow({
     width: 360,
-    height: 420,
+    height: 280,
     resizable: false,
     title: '自定义外观',
     parent: getBallWindow(),

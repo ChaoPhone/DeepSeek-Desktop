@@ -77,10 +77,10 @@ function registerIpcHandlers() {
     if (ballWin && !ballWin.isDestroyed()) {
       const fullConfig = get();
       ballWin.webContents.send('config:changed', fullConfig);
-    }
-    // Update ball size if it changed
-    if (key === 'ballSize') {
-      updateBallSize(value);
+      // ballSize 变化只影响 CSS 渲染，窗口大小固定不变
+      if (key === 'ballSize') {
+        refreshBallWindow();
+      }
     }
     return true;
   });
