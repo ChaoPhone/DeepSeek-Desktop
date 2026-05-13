@@ -6,32 +6,47 @@ let ballWin = null;
 let moveTimer = null;
 let mouseCheckTimer = null;
 
+// 常量：窗口始终使用展开后的大小（固定不变，避免位移）
+const HOVER_PADDING = 8;
+const EXPAND_RADIUS = 60;
+
+// 获取窗口大小（固定为展开后的大小）
+function getWindowSize() {
+  const size = get('ballSize');
+  return size + HOVER_PADDING * 2 + EXPAND_RADIUS * 2;
+}
+
 // 强制重绘悬浮球窗口，解决白色条问题
 function refreshBallWindow() {
   if (ballWin && !ballWin.isDestroyed()) {
     ballWin.setBackgroundColor('#00000000');
-    // 通过隐藏+显示触发GPU重绘
     ballWin.hide();
     ballWin.show();
   }
 }
 
-function createFloatingBall() {
-  const size = get('ballSize');
+// 获取主球中心位置（从 ballPosition 获取的是主球中心位置）
+function getBallCenterPosition() {
   const pos = get('ballPosition');
-  const hoverPadding = 8; // 为 hover 放大预留的空间
+  if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+    return { x: 1200, y: 300 };
+  }
+  return { x: Math.round(pos.x), y: Math.round(pos.y) };
+}
 
-  const display = screen.getDisplayNearestPoint(pos);
-  const wa = display.workArea;
-  const windowSize = size + hoverPadding * 2;
-  const px = Math.max(wa.x, Math.min(wa.x + wa.width - windowSize, pos.x));
-  const py = Math.max(wa.y, Math.min(wa.y + wa.height - windowSize, pos.y));
+function createFloatingBall() {
+  const centerPos = getBallCenterPosition();
+  const windowSize = getWindowSize();
+
+  // 窗口位置：让主球在窗口中心
+  const windowX = Math.round(centerPos.x - windowSize / 2);
+  const windowY = Math.round(centerPos.y - windowSize / 2);
 
   ballWin = new BrowserWindow({
-    width: windowSize,
-    height: windowSize,
-    x: px,
-    y: py,
+    width: Math.round(windowSize),
+    height: Math.round(windowSize),
+    x: windowX,
+    y: windowY,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
@@ -78,12 +93,15 @@ function createFloatingBall() {
 
   ballWin.show();
 
+  // 拖拽时保存主球中心位置
   ballWin.on('move', () => {
     clearTimeout(moveTimer);
     moveTimer = setTimeout(() => {
       if (ballWin && !ballWin.isDestroyed()) {
-        const [nx, ny] = ballWin.getPosition();
-        set('ballPosition', { x: nx, y: ny });
+        const bounds = ballWin.getBounds();
+        const centerX = bounds.x + bounds.width / 2;
+        const centerY = bounds.y + bounds.height / 2;
+        set('ballPosition', { x: centerX, y: centerY });
       }
     }, 300);
   });
@@ -96,28 +114,41 @@ function createFloatingBall() {
     }
   });
 
-  // 定期检查鼠标是否在圆形区域内，动态切换鼠标事件穿透
-  // Windows 上 setIgnoreMouseEvents 的 forward 选项不生效，需要手动检测
+  // 鼠标穿透检测：检测主球和小球圆形范围
   mouseCheckTimer = setInterval(() => {
     if (!ballWin || ballWin.isDestroyed()) return;
 
     const cursorPos = screen.getCursorScreenPoint();
     const bounds = ballWin.getBounds();
-    const size = bounds.width;
+    const ballSize = get('ballSize');
 
-    // 计算鼠标相对于窗口中心的距离
-    const centerX = bounds.x + size / 2;
-    const centerY = bounds.y + size / 2;
+    const centerX = bounds.x + bounds.width / 2;
+    const centerY = bounds.y + bounds.height / 2;
+
     const dx = cursorPos.x - centerX;
     const dy = cursorPos.y - centerY;
 
-    // 判断是否在圆形区域内（考虑边框）
-    const radius = size / 2;
-    const isInCircle = dx * dx + dy * dy <= radius * radius;
+    // 主球半径
+    const mainRadius = (ballSize + HOVER_PADDING) / 2;
+    let shouldCapture = dx * dx + dy * dy <= mainRadius * mainRadius;
 
-    // 动态切换 ignoreMouseEvents
-    ballWin.setIgnoreMouseEvents(!isInCircle, { forward: true });
-  }, 50);  // 50ms 检测间隔
+    // 小球半径和位置（始终检测，因为 CSS 控制可见性）
+    const miniRadius = ballSize * 0.65 / 2;
+    const miniPositions = [
+      { x: 0, y: -50 },
+      { x: -35, y: -35 },
+      { x: -50, y: 0 }
+    ];
+    miniPositions.forEach(pos => {
+      const miniDx = dx - pos.x;
+      const miniDy = dy - pos.y;
+      if (miniDx * miniDx + miniDy * miniDy <= miniRadius * miniRadius) {
+        shouldCapture = true;
+      }
+    });
+
+    ballWin.setIgnoreMouseEvents(!shouldCapture, { forward: true });
+  }, 50);
 
   return ballWin;
 }
@@ -128,9 +159,20 @@ function getBallWindow() {
 
 function updateBallSize(size) {
   if (ballWin && !ballWin.isDestroyed()) {
-    const hoverPadding = 8;
-    ballWin.setSize(size + hoverPadding * 2, size + hoverPadding * 2);
+    const centerPos = getBallCenterPosition();
+    const windowSize = getWindowSize();
+
+    ballWin.setSize(Math.round(windowSize), Math.round(windowSize));
+    ballWin.setPosition(
+      Math.round(centerPos.x - windowSize / 2),
+      Math.round(centerPos.y - windowSize / 2)
+    );
   }
 }
 
-module.exports = { createFloatingBall, getBallWindow, updateBallSize, refreshBallWindow };
+module.exports = {
+  createFloatingBall,
+  getBallWindow,
+  updateBallSize,
+  refreshBallWindow
+};

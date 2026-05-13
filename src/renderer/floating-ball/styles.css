@@ -12,6 +12,12 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
   pointer-events: none;
+}
+
+#ball-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,6 +37,7 @@ html, body {
   pointer-events: auto;
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
   position: relative;
+  z-index: 10;
 }
 
 #ball::after {
@@ -63,4 +70,74 @@ html, body {
   height: 150%;
   pointer-events: none;
   object-fit: contain;
+}
+
+/* 小球样式 */
+.mini-ball {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* 让小球中心初始就在窗口中心 */
+  transform: translate(-50%, -50%) scale(0.5);
+  border-radius: 50%;
+  background: rgba(30, 30, 46, 0.9);
+  border: 2px solid #4A90D9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.mini-ball:hover {
+  border-color: #5BA0E9;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mini-ball .mini-icon {
+  width: 120%;
+  height: 120%;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+/* 小球标签：衬线字体，图标上方 */
+.mini-label {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.3px;
+  position: absolute;
+  top: -12px;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+/* 展开状态 */
+#ball-container.expanded .mini-ball {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 小球扇形展开：从中心向左上方（上、左上偏左、左） */
+/* 展开半径约 50px */
+#ball-container.expanded .mini-ball:nth-child(1) {
+  /* 上方：向上偏移，保持在中心正上方 */
+  transform: translate(-50%, calc(-50% - 50px)) scale(1);
+}
+
+#ball-container.expanded .mini-ball:nth-child(2) {
+  /* 左上偏左：角度约 135°（从右下看） */
+  transform: translate(calc(-50% - 35px), calc(-50% - 35px)) scale(1);
+}
+
+#ball-container.expanded .mini-ball:nth-child(3) {
+  /* 左侧：向左偏移 */
+  transform: translate(calc(-50% - 50px), -50%) scale(1);
 }

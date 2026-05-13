@@ -2,6 +2,7 @@ const pinBtn = document.getElementById('pin-btn');
 const pinIconUnpinned = document.getElementById('pin-icon-unpinned');
 const pinIconPinned = document.getElementById('pin-icon-pinned');
 const minimizeBtn = document.getElementById('minimize-btn');
+const maximizeBtn = document.getElementById('maximize-btn');
 const closeBtn = document.getElementById('close-btn');
 const titleEl = document.getElementById('title');
 
@@ -35,6 +36,12 @@ window.chatAPI.isPinned().then(pinned => {
 // 最小化按钮
 minimizeBtn.addEventListener('click', () => {
   window.chatAPI.minimize();
+});
+
+// 最大化按钮
+maximizeBtn.addEventListener('click', async () => {
+  const isMaximized = await window.chatAPI.toggleMaximize();
+  maximizeBtn.title = isMaximized ? '还原' : '最大化';
 });
 
 // 关闭按钮
