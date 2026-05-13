@@ -36,6 +36,18 @@ API 费用太贵？想同时用多个 AI？
 
 ---
 
+## 截图
+
+| 悬浮球展开 | 右键菜单 |
+|:---:|:---:|
+| <img src="image/多悬浮球展示.png" width="250"> | <img src="image/右键.png" width="250"> |
+
+| 任务栏区分 |
+|:---:|
+| <img src="image/任务栏展示.png" width="400"> |
+
+---
+
 ## 下载
 
 [安装版](https://github.com/ChaoPhone/DeepSeek-Desktop/releases) - 传统安装，有卸载程序
