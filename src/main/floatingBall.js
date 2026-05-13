@@ -4,6 +4,7 @@ const { get, set } = require('./config');
 
 let ballWin = null;
 let moveTimer = null;
+let mouseCheckTimer = null;
 
 // 强制重绘悬浮球窗口，解决白色条问题
 function refreshBallWindow() {
@@ -18,15 +19,17 @@ function refreshBallWindow() {
 function createFloatingBall() {
   const size = get('ballSize');
   const pos = get('ballPosition');
+  const hoverPadding = 8; // 为 hover 放大预留的空间
 
   const display = screen.getDisplayNearestPoint(pos);
   const wa = display.workArea;
-  const px = Math.max(wa.x, Math.min(wa.x + wa.width - size, pos.x));
-  const py = Math.max(wa.y, Math.min(wa.y + wa.height - size, pos.y));
+  const windowSize = size + hoverPadding * 2;
+  const px = Math.max(wa.x, Math.min(wa.x + wa.width - windowSize, pos.x));
+  const py = Math.max(wa.y, Math.min(wa.y + wa.height - windowSize, pos.y));
 
   ballWin = new BrowserWindow({
-    width: size,
-    height: size,
+    width: windowSize,
+    height: windowSize,
     x: px,
     y: py,
     frame: false,
@@ -87,7 +90,34 @@ function createFloatingBall() {
 
   ballWin.on('closed', () => {
     ballWin = null;
+    if (mouseCheckTimer) {
+      clearInterval(mouseCheckTimer);
+      mouseCheckTimer = null;
+    }
   });
+
+  // 定期检查鼠标是否在圆形区域内，动态切换鼠标事件穿透
+  // Windows 上 setIgnoreMouseEvents 的 forward 选项不生效，需要手动检测
+  mouseCheckTimer = setInterval(() => {
+    if (!ballWin || ballWin.isDestroyed()) return;
+
+    const cursorPos = screen.getCursorScreenPoint();
+    const bounds = ballWin.getBounds();
+    const size = bounds.width;
+
+    // 计算鼠标相对于窗口中心的距离
+    const centerX = bounds.x + size / 2;
+    const centerY = bounds.y + size / 2;
+    const dx = cursorPos.x - centerX;
+    const dy = cursorPos.y - centerY;
+
+    // 判断是否在圆形区域内（考虑边框）
+    const radius = size / 2;
+    const isInCircle = dx * dx + dy * dy <= radius * radius;
+
+    // 动态切换 ignoreMouseEvents
+    ballWin.setIgnoreMouseEvents(!isInCircle, { forward: true });
+  }, 50);  // 50ms 检测间隔
 
   return ballWin;
 }
@@ -98,7 +128,8 @@ function getBallWindow() {
 
 function updateBallSize(size) {
   if (ballWin && !ballWin.isDestroyed()) {
-    ballWin.setSize(size, size);
+    const hoverPadding = 8;
+    ballWin.setSize(size + hoverPadding * 2, size + hoverPadding * 2);
   }
 }
 

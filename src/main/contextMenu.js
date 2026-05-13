@@ -53,7 +53,7 @@ function openSettingsWindow() {
       preload: require('path').join(__dirname, '../preload/ballPreload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: false
     }
   });
 
@@ -62,6 +62,8 @@ function openSettingsWindow() {
 
   settingsWin.on('closed', () => {
     settingsWin = null;
+    // 关闭设置窗口后刷新悬浮球，避免白条
+    require('./floatingBall').refreshBallWindow();
   });
 }
 

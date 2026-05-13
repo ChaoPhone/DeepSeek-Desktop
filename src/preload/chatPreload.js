@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('chatAPI', {
   setZoomFactor: (factor) => ipcRenderer.invoke('window:set-zoom', factor),
   togglePin: () => ipcRenderer.invoke('window:toggle-pin'),
   isPinned: () => ipcRenderer.invoke('window:is-pinned'),
+  minimize: () => ipcRenderer.invoke('window:minimize'),
   onTitleUpdate: (callback) => {
     ipcRenderer.on('title:update', (event, title) => callback(title));
   }

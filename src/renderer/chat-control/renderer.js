@@ -1,4 +1,7 @@
 const pinBtn = document.getElementById('pin-btn');
+const pinIconUnpinned = document.getElementById('pin-icon-unpinned');
+const pinIconPinned = document.getElementById('pin-icon-pinned');
+const minimizeBtn = document.getElementById('minimize-btn');
 const closeBtn = document.getElementById('close-btn');
 const titleEl = document.getElementById('title');
 
@@ -10,19 +13,28 @@ window.chatAPI.onTitleUpdate((title) => {
   }
 });
 
+// 更新置顶图标状态
+function updatePinIcon(isPinned) {
+  pinIconUnpinned.style.display = isPinned ? 'none' : 'block';
+  pinIconPinned.style.display = isPinned ? 'block' : 'none';
+  pinBtn.classList.toggle('pinned', isPinned);
+  pinBtn.title = isPinned ? '取消置顶' : '置顶窗口';
+}
+
 // 置顶按钮
 pinBtn.addEventListener('click', async () => {
   const isPinned = await window.chatAPI.togglePin();
-  pinBtn.classList.toggle('pinned', isPinned);
-  pinBtn.title = isPinned ? 'Unpin' : 'Pin';
+  updatePinIcon(isPinned);
 });
 
 // 初始化置顶状态
 window.chatAPI.isPinned().then(pinned => {
-  if (pinned) {
-    pinBtn.classList.add('pinned');
-    pinBtn.title = 'Unpin';
-  }
+  updatePinIcon(pinned);
+});
+
+// 最小化按钮
+minimizeBtn.addEventListener('click', () => {
+  window.chatAPI.minimize();
 });
 
 // 关闭按钮

@@ -12,11 +12,12 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #ball {
-  width: 100%;
-  height: 100%;
   border-radius: 50%;
   background: transparent;
   border: 3px solid #4A90D9;
@@ -46,7 +47,7 @@ html, body {
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.25),
     inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 
 #ball:active {

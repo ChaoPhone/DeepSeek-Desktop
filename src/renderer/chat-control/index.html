@@ -9,7 +9,23 @@
   <div id="drag-zone">
     <span id="title">Loading...</span>
   </div>
-  <button id="pin-btn" title="Pin">📌</button>
+  <button id="pin-btn" title="Pin">
+    <svg id="pin-icon-unpinned" viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+      <!-- 未置顶：斜放的图钉 -->
+      <circle cx="5" cy="11" r="2.5"/>
+      <line x1="5" y1="11" x2="12" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <svg id="pin-icon-pinned" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="display:none">
+      <!-- 已置顶：直立的图钉 -->
+      <circle cx="8" cy="4" r="2.5"/>
+      <line x1="8" y1="4" x2="8" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <button id="minimize-btn" title="Minimize">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+      <path d="M6 11h12v2H6z"/>
+    </svg>
+  </button>
   <button id="close-btn" title="Close (Ctrl+W)">✕</button>
   <script src="renderer.js"></script>
 </body>

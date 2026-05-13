@@ -31,6 +31,9 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
 
   setAutoStart: (enabled) => ipcRenderer.invoke('auto-start:set', enabled),
 
+  // 切换鼠标事件穿透
+  setIgnoreMouseEvents: (ignore) => ipcRenderer.send('ball:set-ignore-mouse-events', ignore),
+
   onConfigChanged: (callback) => {
     ipcRenderer.on('config:changed', (event, newConfig) => callback(newConfig));
   }

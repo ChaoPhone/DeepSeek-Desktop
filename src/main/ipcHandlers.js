@@ -3,7 +3,7 @@ const { get, set } = require('./config');
 const { openNewChatWindow, getViewById } = require('./chatWindow');
 const { showContextMenu } = require('./contextMenu');
 const { setAutoLaunch } = require('./autoLaunch');
-const { getBallWindow, updateBallSize } = require('./floatingBall');
+const { getBallWindow, updateBallSize, refreshBallWindow } = require('./floatingBall');
 
 function registerIpcHandlers() {
   ipcMain.handle('ball:click', () => {
@@ -40,6 +40,13 @@ function registerIpcHandlers() {
       set('ballPosition', { x: sx, y: sy });
     } else {
       set('ballPosition', { x, y });
+    }
+  });
+
+  ipcMain.on('ball:set-ignore-mouse-events', (event, ignore) => {
+    const ballWin = getBallWindow();
+    if (ballWin && !ballWin.isDestroyed()) {
+      ballWin.setIgnoreMouseEvents(ignore, { forward: true });
     }
   });
 
@@ -117,6 +124,14 @@ function registerIpcHandlers() {
   ipcMain.handle('window:is-pinned', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     return win ? win.isAlwaysOnTop() : false;
+  });
+
+  ipcMain.handle('window:minimize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      win.minimize();
+    }
+    return true;
   });
 }
 

@@ -15,9 +15,9 @@ async function applyConfig(config) {
   const opacity = config?.ballOpacity ?? (await window.deepseekAPI.getConfig('ballOpacity'));
   const color = config?.ballColor ?? (await window.deepseekAPI.getConfig('ballColor'));
 
-  document.body.style.width = size + 'px';
-  document.body.style.height = size + 'px';
-  // 色团作为外边框
+  // 设置球的实际大小（用户配置值），居中显示
+  ball.style.width = size + 'px';
+  ball.style.height = size + 'px';
   ball.style.borderColor = color;
   ball.style.opacity = opacity;
 }
