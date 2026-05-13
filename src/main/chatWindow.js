@@ -38,8 +38,18 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   };
 
   // 主窗口使用Mica背景，避免白色边框问题
+  // GLM 窗口：如果 savedBounds.width 与 GLM 默认宽度差距较大，使用 GLM 默认宽度
+  let winWidth = savedBounds?.width;
+  if (currentAI === 'glm') {
+    const glmDefaultWidth = Math.round(baseWidth * 1.2);
+    // 如果保存的宽度与 GLM 默认宽度差距超过 20px，强制使用默认宽度
+    if (!winWidth || Math.abs(winWidth - glmDefaultWidth) > 20) {
+      winWidth = glmDefaultWidth;
+    }
+  }
+
   const win = new BrowserWindow({
-    width: savedBounds?.width || defaults.width,
+    width: winWidth || defaults.width,
     height: savedBounds?.height || defaults.height,
     x: savedBounds?.x,
     y: savedBounds?.y,
@@ -109,6 +119,10 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
 
   win.once('ready-to-show', () => {
     win.show();
+    // 发送品牌色给控制栏渲染器
+    if (aiConfig.brandColor) {
+      win.webContents.send('brand-color:update', aiConfig.brandColor);
+    }
   });
 
   win.on('closed', () => {
@@ -156,7 +170,8 @@ function saveAllBounds() {
         y: win.getBounds().y,
         width: win.getBounds().width,
         height: win.getBounds().height,
-        zoomFactor: view ? view.webContents.getZoomFactor() : 1.0
+        zoomFactor: view ? view.webContents.getZoomFactor() : 1.0,
+        aiKey: win.aiKey // 保存 AI 类型，恢复时使用正确的默认宽度
       });
     }
   });

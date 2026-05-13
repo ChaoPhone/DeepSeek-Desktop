@@ -6,23 +6,34 @@ const miniBalls = document.querySelectorAll('.mini-ball');
 // 加载所有 AI 图标
 const allAIIcons = window.deepseekAPI.getAllAIIcons();
 
-// 动态设置主球图标（根据当前 AI）
-async function updateMainIcon() {
+// 根据当前 AI 更新主球和副球图标
+async function updateBallIcons() {
   const currentAI = await window.deepseekAPI.getConfig('currentAI') || 'deepseek';
-  ballIcon.src = window.deepseekAPI.getAIIcon(currentAI);
+  const otherAIs = await window.deepseekAPI.getOtherAIs(currentAI);
+
+  // 更新主球图标
+  ballIcon.src = allAIIcons[currentAI];
+
+  // 更新副球图标（排除当前默认模型）
+  miniBalls.forEach((miniBall, index) => {
+    const aiKey = otherAIs[index];
+    const iconEl = miniBall.querySelector('.mini-icon');
+    const labelEl = miniBall.querySelector('.mini-label');
+
+    if (iconEl && allAIIcons[aiKey]) {
+      iconEl.src = allAIIcons[aiKey];
+      miniBall.dataset.ai = aiKey;
+
+      if (labelEl) {
+        const labels = { deepseek: 'DS', gpt: 'GPT', gemini: 'GE', glm: 'GLM' };
+        labelEl.textContent = labels[aiKey] || aiKey.toUpperCase().slice(0, 2);
+      }
+    }
+  });
 }
 
-// 设置小球图标
-miniBalls.forEach(miniBall => {
-  const aiKey = miniBall.dataset.ai;
-  const iconEl = miniBall.querySelector('.mini-icon');
-  if (iconEl && allAIIcons[aiKey]) {
-    iconEl.src = allAIIcons[aiKey];
-  }
-});
-
-// 初始化主球图标
-updateMainIcon();
+// 初始化图标
+updateBallIcons();
 
 let dragging = false;
 let startScreenX = 0;
@@ -52,9 +63,9 @@ async function applyConfig(config) {
     miniBall.style.height = miniSize + 'px';
   });
 
-  // 更新主球图标
+  // 配置变化时更新图标
   if (currentAI) {
-    ballIcon.src = window.deepseekAPI.getAIIcon(currentAI);
+    updateBallIcons();
   }
 }
 

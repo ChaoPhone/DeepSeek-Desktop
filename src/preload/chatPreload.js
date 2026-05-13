@@ -18,5 +18,8 @@ contextBridge.exposeInMainWorld('chatAPI', {
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
   onTitleUpdate: (callback) => {
     ipcRenderer.on('title:update', (event, title) => callback(title));
+  },
+  onBrandColorUpdate: (callback) => {
+    ipcRenderer.on('brand-color:update', (event, color) => callback(color));
   }
 });

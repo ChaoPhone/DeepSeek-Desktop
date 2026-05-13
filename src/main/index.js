@@ -55,8 +55,12 @@ if (!gotSingleLock) {
     const lastWindows = get('lastWindows');
     if (lastWindows && lastWindows.length > 0) {
       const { openNewChatWindow } = require('./chatWindow');
-      for (const bounds of lastWindows) {
-        try { openNewChatWindow(bounds); } catch (e) {}
+      for (const savedWin of lastWindows) {
+        try {
+          // 恢复时传递 aiKey，确保 GLM 使用正确的默认宽度
+          const bounds = { x: savedWin.x, y: savedWin.y, width: savedWin.width, height: savedWin.height };
+          openNewChatWindow(bounds, savedWin.aiKey);
+        } catch (e) {}
       }
     }
 

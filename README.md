@@ -1,13 +1,13 @@
 <div align="center">
 
-  <img src="assets/icon.png" alt="DeepSeek Desktop" width="128" height="180">
+  <img src="image/everybody.png" alt="DeepSeek Desktop" width="300">
 
   <h1>DeepSeek Desktop</h1>
 
-  <p><strong>告别 API 费用，实现豆包般的产品快感！</strong></p>
+  <p><strong>告别 API 费用，一键直达多个 AI！</strong></p>
 
   <p>
-    <a href="https://github.com/ChaoPhone/DeepSeek-Desktop/releases/tag/v1.0.0">⬇️ 下载</a> •
+    <a href="https://github.com/ChaoPhone/DeepSeek-Desktop/releases">⬇️ 下载</a> •
     <a href="#功能">功能</a> •
     <a href="#开发">开发</a>
   </p>
@@ -18,28 +18,39 @@
 
 ## 为什么做这个？
 
-API 费用太贵？豆包太好用但想用 DeepSeek？
+API 费用太贵？想同时用多个 AI？
 
-这个悬浮球直接打开 DeepSeek Chat 网页版，**免费、无限制、不用 API**。就像豆包一样，点一下就能聊，拖到哪里都行。
+这个悬浮球直接打开 AI 网页版，**免费、无限制、不用 API**。悬停展开副球，一键切换 DeepSeek、ChatGPT、Gemini、智谱 GLM。
 
 ---
 
 ## 功能
 
+- **多 AI 支持** - DeepSeek、ChatGPT、Gemini、智谱 GLM，悬停展开副球选择
 - **悬浮球** - 想放哪里放哪里，拖拽就行
-- **一键打开** - 点击直接进入 DeepSeek Chat
+- **一键打开** - 点击直接进入 AI Chat
 - **自定义外观** - 颜色、大小、透明度随你调
 - **开机自启** - 开机就等着你用
 - **多窗口** - 想开几个对话都行
+- **任务栏区分** - 不同 AI 显示不同图标
+
+---
+
+## 截图
+
+| 悬浮球展开 | 右键菜单 |
+|:---:|:---:|
+| <img src="image/多悬浮球展示.png" width="250"> | <img src="image/右键.png" width="250"> |
+
+| 任务栏区分 |
+|:---:|
+| <img src="image/任务栏展示.png" width="400"> |
 
 ---
 
 ## 下载
 
-| 版本 | 说明 |
-|------|------|
-| [安装版](https://github.com/ChaoPhone/DeepSeek-Desktop/releases/download/v1.0.0/DeepSeek-Desktop-Setup-1.0.0.exe) | 传统安装，有卸载程序 |
-| [便携版](https://github.com/ChaoPhone/DeepSeek-Desktop/releases/download/v1.0.0/DeepSeek-Desktop-Portable-1.0.0.exe) | 免安装，U盘带走 |
+[安装版](https://github.com/ChaoPhone/DeepSeek-Desktop/releases) - 传统安装，有卸载程序
 
 ---
 

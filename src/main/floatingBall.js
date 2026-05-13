@@ -9,11 +9,11 @@ let mouseCheckTimer = null;
 // 常量：窗口始终使用展开后的大小（固定不变，避免位移）
 const HOVER_PADDING = 8;
 const EXPAND_RADIUS = 60;
+const MAX_BALL_SIZE = 60; // 窗口大小基于最大球尺寸计算
 
-// 获取窗口大小（固定为展开后的大小）
+// 获取窗口大小（固定为最大展开后的大小，不随 ballSize 变化）
 function getWindowSize() {
-  const size = get('ballSize');
-  return size + HOVER_PADDING * 2 + EXPAND_RADIUS * 2;
+  return MAX_BALL_SIZE + HOVER_PADDING * 2 + EXPAND_RADIUS * 2;
 }
 
 // 强制重绘悬浮球窗口，解决白色条问题
@@ -38,9 +38,18 @@ function createFloatingBall() {
   const centerPos = getBallCenterPosition();
   const windowSize = getWindowSize();
 
+  // 获取主显示器的工作区域，确保窗口在可见范围内
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const workArea = primaryDisplay.workArea;
+
+  // 确保中心位置在工作区域内（留出窗口一半的边距）
+  const margin = windowSize / 2 + 10;
+  let x = Math.max(workArea.x + margin, Math.min(workArea.x + workArea.width - margin, centerPos.x));
+  let y = Math.max(workArea.y + margin, Math.min(workArea.y + workArea.height - margin, centerPos.y));
+
   // 窗口位置：让主球在窗口中心
-  const windowX = Math.round(centerPos.x - windowSize / 2);
-  const windowY = Math.round(centerPos.y - windowSize / 2);
+  const windowX = Math.round(x - windowSize / 2);
+  const windowY = Math.round(y - windowSize / 2);
 
   ballWin = new BrowserWindow({
     width: Math.round(windowSize),
@@ -158,16 +167,9 @@ function getBallWindow() {
 }
 
 function updateBallSize(size) {
-  if (ballWin && !ballWin.isDestroyed()) {
-    const centerPos = getBallCenterPosition();
-    const windowSize = getWindowSize();
-
-    ballWin.setSize(Math.round(windowSize), Math.round(windowSize));
-    ballWin.setPosition(
-      Math.round(centerPos.x - windowSize / 2),
-      Math.round(centerPos.y - windowSize / 2)
-    );
-  }
+  // 窗口大小固定不变，ballSize 只影响 CSS 渲染
+  // 此函数仅用于刷新渲染器
+  refreshBallWindow();
 }
 
 module.exports = {

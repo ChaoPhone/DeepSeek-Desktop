@@ -1,24 +1,28 @@
-// AI 网站配置
+// AI 网站配置（每个 AI 的品牌主题色用于刘海区域）
 const AI_SITES = {
   deepseek: {
     name: 'DeepSeek',
     url: 'https://chat.deepseek.com',
-    icon: 'ds.png'
+    icon: 'ds.png',
+    brandColor: '#4D6BFE' // DeepSeek 蓝
   },
   gpt: {
     name: 'ChatGPT',
     url: 'https://chat.openai.com',
-    icon: 'gpt.png'
+    icon: 'gpt.png',
+    brandColor: '#74AA9C' // ChatGPT 灰绿
   },
   gemini: {
     name: 'Gemini',
     url: 'https://gemini.google.com',
-    icon: 'gemini.png'
+    icon: 'gemini.png',
+    brandColor: '#8E75FF' // Gemini 紫
   },
   glm: {
     name: '智谱 GLM',
     url: 'https://chatglm.cn/',
-    icon: 'glm.png'
+    icon: 'glm.png',
+    brandColor: '#6B7280' // GLM 灰
   }
 };
 
