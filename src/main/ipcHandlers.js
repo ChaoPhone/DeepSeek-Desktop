@@ -4,6 +4,7 @@ const { openNewChatWindow, getViewById } = require('./chatWindow');
 const { showContextMenu } = require('./contextMenu');
 const { setAutoLaunch } = require('./autoLaunch');
 const { getBallWindow, updateBallSize, refreshBallWindow } = require('./floatingBall');
+const { getOtherAIs } = require('./aiConfig');
 
 function registerIpcHandlers() {
   ipcMain.handle('ball:click', () => {
@@ -87,6 +88,10 @@ function registerIpcHandlers() {
   ipcMain.handle('auto-start:set', (event, enabled) => {
     setAutoLaunch(enabled);
     return true;
+  });
+
+  ipcMain.handle('ai:get-other', (event, currentAI) => {
+    return getOtherAIs(currentAI);
   });
 
   ipcMain.on('context-menu:open', () => {

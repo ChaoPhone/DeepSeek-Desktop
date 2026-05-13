@@ -1,7 +1,29 @@
+# Dependencies
 node_modules/
+
+# Build output
 build/
 dist/
+out/
+release/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Claude Code session files
 .claude/
