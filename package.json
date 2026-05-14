@@ -1,6 +1,6 @@
 {
   "name": "DS",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "DeepSeek Desktop Floating Ball - Quick access to DeepSeek Chat",
   "main": "src/main/index.js",
   "scripts": {

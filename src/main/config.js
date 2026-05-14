@@ -3,9 +3,9 @@ const Store = require('electron-store').default;
 const schema = {
   ballSize: {
     type: 'number',
-    default: 22,
-    minimum: 16,
-    maximum: 60
+    default: 40,
+    minimum: 20,
+    maximum: 80
   },
   ballOpacity: {
     type: 'number',

@@ -57,6 +57,13 @@ function registerIpcHandlers() {
     }
   });
 
+  ipcMain.on('ball:set-position', (event, { x, y }) => {
+    const ballWin = getBallWindow();
+    if (ballWin && !ballWin.isDestroyed()) {
+      ballWin.setPosition(Math.round(x), Math.round(y));
+    }
+  });
+
   ipcMain.on('ball:drag-end', (event, { x, y }) => {
     // x, y 是窗口左上角位置，需要转换为主球中心位置
     const ballWin = getBallWindow();

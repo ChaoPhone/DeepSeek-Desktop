@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
   openChatWindowForAI: (aiKey) => ipcRenderer.invoke('ball:click-ai', aiKey),
 
   moveWindow: (dx, dy) => ipcRenderer.send('ball:move-window', { dx, dy }),
+  setPosition: (x, y) => ipcRenderer.send('ball:set-position', { x, y }),
 
   savePosition: (x, y) => ipcRenderer.send('ball:drag-end', { x, y }),
 
