@@ -59,13 +59,12 @@ window.chatAPI.isPinned().then(pinned => {
 
 // 刷新按钮
 refreshBtn.addEventListener('click', () => {
-  // 添加旋转动画
   refreshBtn.classList.add('spinning');
   window.chatAPI.reload();
-  // 动画结束后移除类
-  setTimeout(() => {
-    refreshBtn.classList.remove('spinning');
-  }, 600);
+});
+
+refreshBtn.addEventListener('animationend', () => {
+  refreshBtn.classList.remove('spinning');
 });
 
 // 最小化按钮
