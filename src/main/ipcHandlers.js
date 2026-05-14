@@ -209,6 +209,16 @@ function registerIpcHandlers() {
     const win = BrowserWindow.fromWebContents(event.sender);
     return isMaximized(win);
   });
+
+  ipcMain.handle('window:reload', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    const view = getViewById(win.chatWindowId);
+    if (view) {
+      view.webContents.reload();
+    }
+    return true;
+  });
 }
 
 // 存储窗口最大化前的 bounds（放在模块级别，不在函数内）
