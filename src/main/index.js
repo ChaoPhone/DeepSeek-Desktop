@@ -51,6 +51,9 @@ if (!gotSingleLock) {
     registerIpcHandlers();
     logger.log('IPC registered');
 
+    const { registerContextMenuIPC } = require('./contextMenu');
+    registerContextMenuIPC();
+
     // Restore last session chat windows
     const lastWindows = get('lastWindows');
     if (lastWindows && lastWindows.length > 0) {

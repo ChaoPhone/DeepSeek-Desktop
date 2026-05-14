@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background: transparent;
+      overflow: hidden;
+      -webkit-user-select: none;
+      font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+    }
+
+    #menu {
+      background: rgba(30, 30, 40, 0.95);
+      border-radius: 8px;
+      padding: 4px 0;
+      min-width: 160px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .menu-item {
+      padding: 8px 16px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 4px;
+      margin: 2px 4px;
+    }
+
+    .menu-item:hover {
+      background: rgba(74, 144, 217, 0.3);
+    }
+
+    .menu-item.active {
+      background: rgba(74, 144, 217, 0.5);
+    }
+
+    .menu-item .check {
+      color: rgba(74, 144, 217, 1);
+      font-size: 12px;
+    }
+
+    .separator {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 4px 8px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-box {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkbox-box.checked {
+      background: rgba(74, 144, 217, 0.8);
+      border-color: rgba(74, 144, 217, 1);
+    }
+
+    .checkbox-box.checked::after {
+      content: '✓';
+      color: white;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu"></div>
+  <script src="renderer.js"></script>
+</body>
+</html>
