@@ -180,44 +180,44 @@ html, body {
 
 /* 默认方向：左上方（向上、左上偏左、左） */
 #ball-container.expand-top-left.expanded .mini-ball:nth-child(1) {
-  transform: translate(-50%, calc(-50% - var(--straight-offset))) scale(1);
+  transform: translate(-50%, calc(-50% - var(--mini-pos-1, 50px))) scale(1);
 }
 #ball-container.expand-top-left.expanded .mini-ball:nth-child(2) {
-  transform: translate(calc(-50% - var(--diagonal-offset)), calc(-50% - var(--diagonal-offset))) scale(1);
+  transform: translate(calc(-50% - var(--mini-pos-2, 35px)), calc(-50% - var(--mini-pos-2, 35px))) scale(1);
 }
 #ball-container.expand-top-left.expanded .mini-ball:nth-child(3) {
-  transform: translate(calc(-50% - var(--straight-offset)), -50%) scale(1);
+  transform: translate(calc(-50% - var(--mini-pos-1, 50px)), -50%) scale(1);
 }
 
 /* 右上方（向上、右上偏右、右） */
 #ball-container.expand-top-right.expanded .mini-ball:nth-child(1) {
-  transform: translate(-50%, calc(-50% - var(--straight-offset))) scale(1);
+  transform: translate(-50%, calc(-50% - var(--mini-pos-1, 50px))) scale(1);
 }
 #ball-container.expand-top-right.expanded .mini-ball:nth-child(2) {
-  transform: translate(calc(-50% + var(--diagonal-offset)), calc(-50% - var(--diagonal-offset))) scale(1);
+  transform: translate(calc(-50% + var(--mini-pos-2, 35px)), calc(-50% - var(--mini-pos-2, 35px))) scale(1);
 }
 #ball-container.expand-top-right.expanded .mini-ball:nth-child(3) {
-  transform: translate(calc(-50% + var(--straight-offset)), -50%) scale(1);
+  transform: translate(calc(-50% + var(--mini-pos-1, 50px)), -50%) scale(1);
 }
 
 /* 左下方（向下、左下偏左、左） */
 #ball-container.expand-bottom-left.expanded .mini-ball:nth-child(1) {
-  transform: translate(-50%, calc(-50% + var(--straight-offset))) scale(1);
+  transform: translate(-50%, calc(-50% + var(--mini-pos-1, 50px))) scale(1);
 }
 #ball-container.expand-bottom-left.expanded .mini-ball:nth-child(2) {
-  transform: translate(calc(-50% - var(--diagonal-offset)), calc(-50% + var(--diagonal-offset))) scale(1);
+  transform: translate(calc(-50% - var(--mini-pos-2, 35px)), calc(-50% + var(--mini-pos-2, 35px))) scale(1);
 }
 #ball-container.expand-bottom-left.expanded .mini-ball:nth-child(3) {
-  transform: translate(calc(-50% - var(--straight-offset)), -50%) scale(1);
+  transform: translate(calc(-50% - var(--mini-pos-1, 50px)), -50%) scale(1);
 }
 
 /* 右下方（向下、右下偏右、右） */
 #ball-container.expand-bottom-right.expanded .mini-ball:nth-child(1) {
-  transform: translate(-50%, calc(-50% + var(--straight-offset))) scale(1);
+  transform: translate(-50%, calc(-50% + var(--mini-pos-1, 50px))) scale(1);
 }
 #ball-container.expand-bottom-right.expanded .mini-ball:nth-child(2) {
-  transform: translate(calc(-50% + var(--diagonal-offset)), calc(-50% + var(--diagonal-offset))) scale(1);
+  transform: translate(calc(-50% + var(--mini-pos-2, 35px)), calc(-50% + var(--mini-pos-2, 35px))) scale(1);
 }
 #ball-container.expand-bottom-right.expanded .mini-ball:nth-child(3) {
-  transform: translate(calc(-50% + var(--straight-offset)), -50%) scale(1);
+  transform: translate(calc(-50% + var(--mini-pos-1, 50px)), -50%) scale(1);
 }

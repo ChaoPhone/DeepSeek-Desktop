@@ -8,12 +8,17 @@ let mouseCheckTimer = null;
 
 // 常量：窗口始终使用展开后的大小（固定不变，避免位移）
 const HOVER_PADDING = 8;
-const EXPAND_RADIUS = 60;
-const MAX_BALL_SIZE = 60; // 窗口大小基于最大球尺寸计算
+const MAX_BALL_SIZE = 80; // 窗口大小基于最大球尺寸计算
+const SPACING_RATIO = 1.1; // 副球间距比例（44px/40px）
 
-// 获取窗口大小（固定为最大展开后的大小，不随 ballSize 变化）
+// 获取窗口大小（固定为最大展开后的大小）
 function getWindowSize() {
-  return MAX_BALL_SIZE + HOVER_PADDING * 2 + EXPAND_RADIUS * 2;
+  // 最大间距 = MAX_BALL_SIZE * SPACING_RATIO = 88px
+  // 最大副球大小 = MAX_BALL_SIZE * 0.65 = 52px
+  // 窗口 = MAX_BALL_SIZE + HOVER_PADDING*2 + 最大间距*2 + 副球大小*2
+  const maxSpacing = MAX_BALL_SIZE * SPACING_RATIO;
+  const maxMiniSize = MAX_BALL_SIZE * 0.65;
+  return MAX_BALL_SIZE + HOVER_PADDING * 2 + maxSpacing * 2 + maxMiniSize;
 }
 
 // 强制重绘悬浮球窗口，解决白色条问题
@@ -157,12 +162,17 @@ function createFloatingBall() {
     const preferLeft = centerX - wa.x > wa.x + wa.width - centerX;
     const preferTop = centerY - wa.y > wa.y + wa.height - centerY;
 
+    // 动态计算副球位置：间距 = ballSize * 1.1
+    const spacing = ballSize * SPACING_RATIO;
+    const pos1 = spacing * 1.14;  // 垂直/水平方向
+    const pos2 = spacing * 0.8;   // 斜向
+
     // 四个方向的小球位置
     const miniPositionsByDirection = {
-      'top-left': [{ x: 0, y: -50 }, { x: -35, y: -35 }, { x: -50, y: 0 }],
-      'top-right': [{ x: 0, y: -50 }, { x: 35, y: -35 }, { x: 50, y: 0 }],
-      'bottom-left': [{ x: 0, y: 50 }, { x: -35, y: 35 }, { x: -50, y: 0 }],
-      'bottom-right': [{ x: 0, y: 50 }, { x: 35, y: 35 }, { x: 50, y: 0 }]
+      'top-left': [{ x: 0, y: -pos1 }, { x: -pos2, y: -pos2 }, { x: -pos1, y: 0 }],
+      'top-right': [{ x: 0, y: -pos1 }, { x: pos2, y: -pos2 }, { x: pos1, y: 0 }],
+      'bottom-left': [{ x: 0, y: pos1 }, { x: -pos2, y: pos2 }, { x: -pos1, y: 0 }],
+      'bottom-right': [{ x: 0, y: pos1 }, { x: pos2, y: pos2 }, { x: pos1, y: 0 }]
     };
 
     const direction = (preferTop ? 'top' : 'bottom') + '-' + (preferLeft ? 'left' : 'right');

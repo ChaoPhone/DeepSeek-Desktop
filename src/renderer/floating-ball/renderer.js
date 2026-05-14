@@ -38,8 +38,6 @@ updateBallIcons();
 let dragging = false;
 let startScreenX = 0;
 let startScreenY = 0;
-let startWindowX = 0;
-let startWindowY = 0;
 let startTime = 0;
 let hasMoved = false;
 let expandTimer = null;
@@ -65,13 +63,13 @@ async function applyConfig(config) {
     miniBall.style.height = miniSize + 'px';
   });
 
-  // 设置副球间距 CSS 变量（基于40px基准比例）
-  // 垂直/水平偏移比例：50px / 40px = 1.25
-  // 对角偏移比例：35px / 40px = 0.875
-  const straightOffset = Math.round(size * 1.25);
-  const diagonalOffset = Math.round(size * 0.875);
-  ballContainer.style.setProperty('--straight-offset', straightOffset + 'px');
-  ballContainer.style.setProperty('--diagonal-offset', diagonalOffset + 'px');
+  // 动态计算副球展开位置：间距比例 1.1（44px/40px）
+  const spacing = size * 1.1;
+  const pos1 = Math.round(spacing * 1.14);  // 垂直/水平方向
+  const pos2 = Math.round(spacing * 0.8);   // 斜向
+  // 设置 CSS 变量供 styles.css 使用
+  ballContainer.style.setProperty('--mini-pos-1', pos1 + 'px');
+  ballContainer.style.setProperty('--mini-pos-2', pos2 + 'px');
 
   // 配置变化时更新图标
   if (currentAI) {
@@ -149,8 +147,6 @@ ball.addEventListener('mousedown', (e) => {
   hasMoved = false;
   startScreenX = e.screenX;
   startScreenY = e.screenY;
-  startWindowX = window.screenX;
-  startWindowY = window.screenY;
   startTime = Date.now();
   // 拖拽时收缩小球
   ballContainer.classList.remove('expanded');
@@ -167,10 +163,9 @@ document.addEventListener('mousemove', (e) => {
 
   if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
     hasMoved = true;
-    // 直接设置窗口位置，避免 IPC 延迟累积
-    const newWindowX = startWindowX + dx;
-    const newWindowY = startWindowY + dy;
-    window.deepseekAPI.setPosition(newWindowX, newWindowY);
+    window.deepseekAPI.moveWindow(dx, dy);
+    startScreenX = e.screenX;
+    startScreenY = e.screenY;
   }
 });
 

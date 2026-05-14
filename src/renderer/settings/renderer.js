@@ -4,7 +4,7 @@ const opacitySlider = document.getElementById('ball-opacity');
 const opacityVal = document.getElementById('opacity-val');
 const resetBtn = document.getElementById('reset-btn');
 
-const DEFAULTS = { ballSize: 22, ballOpacity: 0.9 };
+const DEFAULTS = { ballSize: 40, ballOpacity: 0.9 };
 
 async function init() {
   const size = await window.deepseekAPI.getConfig('ballSize');
