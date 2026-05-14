@@ -75,7 +75,13 @@ function createFloatingBall() {
   });
 
   ballWin.setBackgroundColor('#00000000');
-  ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+  // 根据配置设置置顶状态
+  const alwaysOnTop = get('ballAlwaysOnTop') !== false;
+  if (alwaysOnTop) {
+    ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+  } else {
+    ballWin.setAlwaysOnTop(false);
+  }
   ballWin.setTitle('');
 
   const htmlPath = path.join(__dirname, '../renderer/floating-ball/index.html');
@@ -141,13 +147,26 @@ function createFloatingBall() {
     const mainRadius = (ballSize + HOVER_PADDING) / 2;
     let shouldCapture = dx * dx + dy * dy <= mainRadius * mainRadius;
 
-    // 小球半径和位置（始终检测，因为 CSS 控制可见性）
+    // 小球半径和位置（根据屏幕位置动态选择方向）
     const miniRadius = ballSize * 0.65 / 2;
-    const miniPositions = [
-      { x: 0, y: -50 },
-      { x: -35, y: -35 },
-      { x: -50, y: 0 }
-    ];
+    const display = screen.getDisplayNearestPoint({ x: centerX, y: centerY });
+    const wa = display.workArea;
+
+    // 判断展开方向
+    const preferLeft = centerX - wa.x > wa.x + wa.width - centerX;
+    const preferTop = centerY - wa.y > wa.y + wa.height - centerY;
+
+    // 四个方向的小球位置
+    const miniPositionsByDirection = {
+      'top-left': [{ x: 0, y: -50 }, { x: -35, y: -35 }, { x: -50, y: 0 }],
+      'top-right': [{ x: 0, y: -50 }, { x: 35, y: -35 }, { x: 50, y: 0 }],
+      'bottom-left': [{ x: 0, y: 50 }, { x: -35, y: 35 }, { x: -50, y: 0 }],
+      'bottom-right': [{ x: 0, y: 50 }, { x: 35, y: 35 }, { x: 50, y: 0 }]
+    };
+
+    const direction = (preferTop ? 'top' : 'bottom') + '-' + (preferLeft ? 'left' : 'right');
+    const miniPositions = miniPositionsByDirection[direction];
+
     miniPositions.forEach(pos => {
       const miniDx = dx - pos.x;
       const miniDy = dy - pos.y;

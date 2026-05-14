@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
   getAllAIIcons: () => allAIIcons,
   getAIIcon: (aiKey) => allAIIcons[aiKey] || iconBase64,
   getOtherAIs: (currentAI) => ipcRenderer.invoke('ai:get-other', currentAI),
+  getExpandDirection: () => ipcRenderer.invoke('ball:get-expand-direction'),
   openChatWindow: () => ipcRenderer.invoke('ball:click'),
   openChatWindowForAI: (aiKey) => ipcRenderer.invoke('ball:click-ai', aiKey),
 

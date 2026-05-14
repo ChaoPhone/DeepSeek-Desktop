@@ -28,6 +28,23 @@ function showContextMenu(ballWin) {
     ...aiMenuItems,
     { type: 'separator' },
     {
+      label: '主球置顶',
+      type: 'checkbox',
+      checked: config.ballAlwaysOnTop !== false,
+      click: (menuItem) => {
+        set('ballAlwaysOnTop', menuItem.checked);
+        // 更新悬浮球置顶状态
+        const ballWin = getBallWindow();
+        if (ballWin && !ballWin.isDestroyed()) {
+          if (menuItem.checked) {
+            ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+          } else {
+            ballWin.setAlwaysOnTop(false);
+          }
+        }
+      }
+    },
+    {
       label: '开机自启',
       type: 'checkbox',
       checked: config.autoStart,

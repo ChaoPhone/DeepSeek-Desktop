@@ -12,6 +12,38 @@ function registerIpcHandlers() {
     return { windowId: id };
   });
 
+  ipcMain.handle('ball:get-expand-direction', () => {
+    const ballWin = getBallWindow();
+    if (!ballWin || ballWin.isDestroyed()) return 'top-left';
+
+    const bounds = ballWin.getBounds();
+    const centerX = bounds.x + bounds.width / 2;
+    const centerY = bounds.y + bounds.height / 2;
+
+    const display = screen.getDisplayNearestPoint({ x: centerX, y: centerY });
+    const wa = display.workArea;
+
+    // 判断悬浮球在屏幕的哪个区域
+    const midX = wa.x + wa.width / 2;
+    const midY = wa.y + wa.height / 2;
+
+    // 副球应弹出方向：选择空间最大的方向
+    const spaceLeft = centerX - wa.x;
+    const spaceRight = wa.x + wa.width - centerX;
+    const spaceTop = centerY - wa.y;
+    const spaceBottom = wa.y + wa.height - centerY;
+
+    // 找出最小空间方向，副球弹出应避开该方向
+    // 返回四个方向之一：top-left, top-right, bottom-left, bottom-right
+    const preferLeft = spaceLeft > spaceRight;
+    const preferTop = spaceTop > spaceBottom;
+
+    if (preferTop && preferLeft) return 'top-left';
+    if (preferTop && !preferLeft) return 'top-right';
+    if (!preferTop && preferLeft) return 'bottom-left';
+    return 'bottom-right';
+  });
+
   ipcMain.handle('ball:click-ai', (event, aiKey) => {
     const id = openNewChatWindow(null, aiKey);
     return { windowId: id };

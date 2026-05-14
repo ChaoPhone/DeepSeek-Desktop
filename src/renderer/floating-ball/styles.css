@@ -26,7 +26,7 @@ html, body {
 #ball {
   border-radius: 50%;
   background: transparent;
-  border: 3px solid #4A90D9;
+  border: 3px solid #3A6AD4;
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -50,7 +50,7 @@ html, body {
 }
 
 #ball:hover {
-  border-color: #5BA0E9;
+  border-color: #4A7AE4;
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.25),
     inset 0 0 0 1px rgba(255, 255, 255, 0.2);
@@ -59,7 +59,7 @@ html, body {
 
 #ball:active {
   transform: scale(0.93);
-  border-color: #3A80C9;
+  border-color: #2A5AC4;
   box-shadow:
     0 1px 4px rgba(0, 0, 0, 0.15),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -81,7 +81,7 @@ html, body {
   transform: translate(-50%, -50%) scale(0.5);
   border-radius: 50%;
   background: rgba(30, 30, 46, 0.9);
-  border: 2px solid #4A90D9;
+  border: 2px solid #3A6AD4;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
@@ -95,7 +95,7 @@ html, body {
 }
 
 .mini-ball:hover {
-  border-color: #5BA0E9;
+  border-color: #4A7AE4;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -106,17 +106,59 @@ html, body {
   object-fit: contain;
 }
 
-/* 小球标签：衬线字体，图标上方 */
+/* 小球标签：衬线字体，带深色椭圆背景 */
 .mini-label {
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 8px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   letter-spacing: 0.3px;
   position: absolute;
-  top: -12px;
   pointer-events: none;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* DeepSeek 标签：深蓝色背景（匹配新品牌色） */
+.mini-ball[data-ai="deepseek"] .mini-label {
+  background: rgba(58, 106, 212, 0.9);
+}
+
+/* GPT 标签：深绿色背景 */
+.mini-ball[data-ai="gpt"] .mini-label {
+  background: rgba(35, 75, 55, 0.9);
+}
+
+/* Gemini 标签：彩色渐变背景 */
+.mini-ball[data-ai="gemini"] .mini-label {
+  background: linear-gradient(135deg, rgba(100, 50, 150, 0.9), rgba(50, 100, 180, 0.9), rgba(180, 80, 120, 0.9));
+}
+
+/* GLM 标签：黑色背景 */
+.mini-ball[data-ai="glm"] .mini-label {
+  background: rgba(15, 15, 20, 0.9);
+}
+
+/* ===== 左上方展开：所有文字都在左上对角朝外 ===== */
+#ball-container.expand-top-left.expanded .mini-ball .mini-label {
+  top: -10px; bottom: auto; left: -10px; right: auto;
+}
+
+/* ===== 右上方展开：所有文字都在右上对角朝外 ===== */
+#ball-container.expand-top-right.expanded .mini-ball .mini-label {
+  top: -10px; bottom: auto; left: auto; right: -10px;
+}
+
+/* ===== 左下方展开：所有文字都在左下对角朝外 ===== */
+#ball-container.expand-bottom-left.expanded .mini-ball .mini-label {
+  top: auto; bottom: -10px; left: -10px; right: auto;
+}
+
+/* ===== 右下方展开：所有文字都在右下对角朝外 ===== */
+#ball-container.expand-bottom-right.expanded .mini-ball .mini-label {
+  top: auto; bottom: -10px; left: auto; right: -10px;
 }
 
 /* 展开状态 */
@@ -125,19 +167,46 @@ html, body {
   pointer-events: auto;
 }
 
-/* 小球扇形展开：从中心向左上方（上、左上偏左、左） */
-/* 展开半径约 50px */
-#ball-container.expanded .mini-ball:nth-child(1) {
-  /* 上方：向上偏移，保持在中心正上方 */
+/* 默认方向：左上方（向上、左上偏左、左） */
+#ball-container.expand-top-left.expanded .mini-ball:nth-child(1) {
   transform: translate(-50%, calc(-50% - 50px)) scale(1);
 }
-
-#ball-container.expanded .mini-ball:nth-child(2) {
-  /* 左上偏左：角度约 135°（从右下看） */
+#ball-container.expand-top-left.expanded .mini-ball:nth-child(2) {
   transform: translate(calc(-50% - 35px), calc(-50% - 35px)) scale(1);
 }
-
-#ball-container.expanded .mini-ball:nth-child(3) {
-  /* 左侧：向左偏移 */
+#ball-container.expand-top-left.expanded .mini-ball:nth-child(3) {
   transform: translate(calc(-50% - 50px), -50%) scale(1);
+}
+
+/* 右上方（向上、右上偏右、右） */
+#ball-container.expand-top-right.expanded .mini-ball:nth-child(1) {
+  transform: translate(-50%, calc(-50% - 50px)) scale(1);
+}
+#ball-container.expand-top-right.expanded .mini-ball:nth-child(2) {
+  transform: translate(calc(-50% + 35px), calc(-50% - 35px)) scale(1);
+}
+#ball-container.expand-top-right.expanded .mini-ball:nth-child(3) {
+  transform: translate(calc(-50% + 50px), -50%) scale(1);
+}
+
+/* 左下方（向下、左下偏左、左） */
+#ball-container.expand-bottom-left.expanded .mini-ball:nth-child(1) {
+  transform: translate(-50%, calc(-50% + 50px)) scale(1);
+}
+#ball-container.expand-bottom-left.expanded .mini-ball:nth-child(2) {
+  transform: translate(calc(-50% - 35px), calc(-50% + 35px)) scale(1);
+}
+#ball-container.expand-bottom-left.expanded .mini-ball:nth-child(3) {
+  transform: translate(calc(-50% - 50px), -50%) scale(1);
+}
+
+/* 右下方（向下、右下偏右、右） */
+#ball-container.expand-bottom-right.expanded .mini-ball:nth-child(1) {
+  transform: translate(-50%, calc(-50% + 50px)) scale(1);
+}
+#ball-container.expand-bottom-right.expanded .mini-ball:nth-child(2) {
+  transform: translate(calc(-50% + 35px), calc(-50% + 35px)) scale(1);
+}
+#ball-container.expand-bottom-right.expanded .mini-ball:nth-child(3) {
+  transform: translate(calc(-50% + 50px), -50%) scale(1);
 }

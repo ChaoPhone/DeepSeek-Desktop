@@ -15,11 +15,15 @@ const schema = {
   },
   ballColor: {
     type: 'string',
-    default: '#4A90D9'
+    default: '#3A6AD4'
   },
   ballPosition: {
     type: 'object',
     default: { x: 1200, y: 300 }
+  },
+  ballAlwaysOnTop: {
+    type: 'boolean',
+    default: true
   },
   autoStart: {
     type: 'boolean',

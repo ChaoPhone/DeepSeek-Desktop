@@ -69,11 +69,15 @@ async function applyConfig(config) {
   }
 }
 
-// 展开小球（纯 CSS 控制，无需 IPC）
-function expandBalls() {
+// 展开小球（根据屏幕位置智能选择方向）
+async function expandBalls() {
   clearTimeout(collapseTimer);
   if (!isExpanded) {
-    ballContainer.classList.add('expanded');
+    // 获取展开方向
+    const direction = await window.deepseekAPI.getExpandDirection();
+    // 移除旧方向类，添加新方向类
+    ballContainer.classList.remove('expand-top-left', 'expand-top-right', 'expand-bottom-left', 'expand-bottom-right');
+    ballContainer.classList.add('expanded', `expand-${direction}`);
     isExpanded = true;
   }
 }

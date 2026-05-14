@@ -50,7 +50,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #4A90D9;
+  background: #3A6AD4;
   cursor: pointer;
   border: 2px solid #1e1e2e;
   box-shadow: 0 1px 4px rgba(0,0,0,0.3);
