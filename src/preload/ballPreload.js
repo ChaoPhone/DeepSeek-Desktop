@@ -39,9 +39,18 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
   openChatWindowForAI: (aiKey) => ipcRenderer.invoke('ball:click-ai', aiKey),
 
   moveWindow: (dx, dy) => ipcRenderer.send('ball:move-window', { dx, dy }),
-  setPosition: (x, y) => ipcRenderer.send('ball:set-position', { x, y }),
+  // 拖动开始：请求窗口初始位置
+  dragStart: () => ipcRenderer.send('ball:drag-start'),
+  // 拖动移动：传递计算好的新窗口位置
+  moveWindow: (x, y) => ipcRenderer.send('ball:move-window', { x, y }),
+
+  // 接收窗口初始位置
+  onWindowStartPosition: (callback) => {
+    ipcRenderer.on('window-start-position', (event, pos) => callback(pos));
+  },
 
   savePosition: (x, y) => ipcRenderer.send('ball:drag-end', { x, y }),
+  dragEnd: () => ipcRenderer.send('ball:drag-end'),
 
   showContextMenu: () => ipcRenderer.send('context-menu:open'),
 

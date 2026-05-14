@@ -51,8 +51,12 @@ if (!gotSingleLock) {
     registerIpcHandlers();
     logger.log('IPC registered');
 
-    const { registerContextMenuIPC } = require('./contextMenu');
-    registerContextMenuIPC();
+    // 自动更新（仅在生产环境启用）
+    if (app.isPackaged) {
+      const { setupAutoUpdater } = require('./autoUpdater');
+      setupAutoUpdater();
+      logger.log('AutoUpdater enabled');
+    }
 
     // Restore last session chat windows
     const lastWindows = get('lastWindows');
@@ -78,5 +82,11 @@ if (!gotSingleLock) {
     const bounds = saveAllBounds();
     if (bounds.length > 0) set('lastWindows', bounds);
     closeAllChatWindows();
+
+    // 清理自动更新定时器
+    if (app.isPackaged) {
+      const { cleanupAutoUpdater } = require('./autoUpdater');
+      cleanupAutoUpdater();
+    }
   });
 }

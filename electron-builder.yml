@@ -25,5 +25,11 @@ nsis:
   shortcutName: DeepSeek Desktop
   artifactName: DeepSeek-Desktop-Setup-${version}.${ext}
 
+# 自动更新配置：从 GitHub Releases 发布和检查更新
+publish:
+  provider: github
+  owner: ChaoPhone
+  repo: DeepSeek-Desktop
+
 extraMetadata:
   main: src/main/index.js

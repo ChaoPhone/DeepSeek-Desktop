@@ -38,11 +38,21 @@ updateBallIcons();
 let dragging = false;
 let startScreenX = 0;
 let startScreenY = 0;
+let startWinX = 0;
+let startWinY = 0;
 let startTime = 0;
 let hasMoved = false;
 let expandTimer = null;
 let collapseTimer = null;
 let isExpanded = false;
+
+// 监听主进程返回的窗口初始位置
+window.deepseekAPI.onWindowStartPosition((pos) => {
+  if (dragging) {
+    startWinX = pos.x;
+    startWinY = pos.y;
+  }
+});
 
 async function applyConfig(config) {
   const size = config?.ballSize ?? (await window.deepseekAPI.getConfig('ballSize'));
@@ -145,9 +155,16 @@ ball.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   dragging = true;
   hasMoved = false;
+
+  // 使用 screenX/Y 获取屏幕绝对坐标
   startScreenX = e.screenX;
   startScreenY = e.screenY;
+
   startTime = Date.now();
+
+  // 向主进程请求窗口初始位置
+  window.deepseekAPI.dragStart();
+
   // 拖拽时收缩小球
   ballContainer.classList.remove('expanded');
   isExpanded = false;
@@ -158,14 +175,21 @@ ball.addEventListener('mousedown', (e) => {
 document.addEventListener('mousemove', (e) => {
   if (!dragging) return;
 
-  const dx = e.screenX - startScreenX;
-  const dy = e.screenY - startScreenY;
+  // 计算鼠标偏移量
+  const deltaX = e.screenX - startScreenX;
+  const deltaY = e.screenY - startScreenY;
 
-  if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+  if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
     hasMoved = true;
-    window.deepseekAPI.moveWindow(dx, dy);
-    startScreenX = e.screenX;
-    startScreenY = e.screenY;
+
+    // 计算新窗口位置
+    const newX = startWinX + deltaX;
+    const newY = startWinY + deltaY;
+
+    // 使用 requestAnimationFrame 同步视觉更新
+    requestAnimationFrame(() => {
+      window.deepseekAPI.moveWindow(newX, newY);
+    });
   }
 });
 
@@ -180,9 +204,8 @@ document.addEventListener('mouseup', () => {
   }
 
   if (hasMoved) {
-    // 保存主球中心位置（窗口中心）
-    // 注意：此时窗口应该处于收缩状态，所以窗口中心就是主球中心
-    window.deepseekAPI.savePosition(window.screenX, window.screenY);
+    // 通知主进程拖动结束
+    window.deepseekAPI.dragEnd();
   }
 
   dragging = false;

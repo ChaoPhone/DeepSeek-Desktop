@@ -6,6 +6,11 @@ const { setAutoLaunch } = require('./autoLaunch');
 const { getBallWindow, updateBallSize, refreshBallWindow } = require('./floatingBall');
 const { getOtherAIs } = require('./aiConfig');
 
+// 拖动状态
+let dragWin = null;
+let dragWinSize = { width: 0, height: 0 };
+let isDragging = false;
+
 function registerIpcHandlers() {
   ipcMain.handle('ball:click', () => {
     const id = openNewChatWindow();
@@ -49,59 +54,71 @@ function registerIpcHandlers() {
     return { windowId: id };
   });
 
-  ipcMain.on('ball:move-window', (event, { dx, dy }) => {
-    const ballWin = getBallWindow();
-    if (ballWin && !ballWin.isDestroyed()) {
-      const [x, y] = ballWin.getPosition();
-      ballWin.setPosition(x + dx, y + dy);
-    }
+  // 拖动开始：主进程获取窗口位置并返回给渲染进程
+  ipcMain.on('ball:drag-start', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return;
+
+    const [x, y] = win.getPosition();
+    const [width, height] = win.getSize();
+
+    dragWin = win;
+    dragWinSize = { width, height };
+    isDragging = true;
+
+    // 将窗口初始位置和尺寸发送回渲染进程
+    event.sender.send('window-start-position', { x, y, width, height });
   });
 
-  ipcMain.on('ball:set-position', (event, { x, y }) => {
-    const ballWin = getBallWindow();
-    if (ballWin && !ballWin.isDestroyed()) {
-      ballWin.setPosition(Math.round(x), Math.round(y));
-    }
+  // 拖动移动：使用 setBounds 锁定窗口尺寸（防止 DPI 缩放导致窗口放大）
+  ipcMain.on('ball:move-window', (event, { x, y }) => {
+    if (!isDragging || !dragWin || dragWin.isDestroyed()) return;
+
+    // 使用 setBounds 同时设置位置和尺寸，锁定窗口大小
+    dragWin.setBounds({
+      x: Math.round(x),
+      y: Math.round(y),
+      width: dragWinSize.width,
+      height: dragWinSize.height
+    });
   });
 
-  ipcMain.on('ball:drag-end', (event, { x, y }) => {
-    // x, y 是窗口左上角位置，需要转换为主球中心位置
-    const ballWin = getBallWindow();
-    if (ballWin && !ballWin.isDestroyed()) {
-      const bounds = ballWin.getBounds();
-      // 计算主球中心位置（窗口中心）
-      const centerX = x + bounds.width / 2;
-      const centerY = y + bounds.height / 2;
+  // 拖动结束：清理状态，检查边界回弹
+  ipcMain.on('ball:drag-end', (event) => {
+    isDragging = false;
+
+    // 边界回弹检查
+    if (dragWin && !dragWin.isDestroyed()) {
+      const bounds = dragWin.getBounds();
+      const centerX = bounds.x + bounds.width / 2;
+      const centerY = bounds.y + bounds.height / 2;
 
       const display = screen.getDisplayNearestPoint({ x: centerX, y: centerY });
       const wa = display.workArea;
-      // 使用实际悬浮球大小计算半径，确保球边缘不超出屏幕
       const ballSize = get('ballSize') || 40;
       const ballRadius = ballSize / 2;
 
       let sx = centerX, sy = centerY;
-      // 主球左边缘超出工作区域左侧 → 回弹到左边缘 + 半径位置
+
       if (centerX - ballRadius < wa.x) sx = wa.x + ballRadius;
-      // 主球右边缘超出工作区域右侧 → 回弹到右边缘 - 半径位置
       else if (centerX + ballRadius > wa.x + wa.width) sx = wa.x + wa.width - ballRadius;
-      // 主球上边缘超出工作区域顶部 → 回弹到顶部 + 半径位置
+
       if (centerY - ballRadius < wa.y) sy = wa.y + ballRadius;
-      // 主球下边缘超出工作区域底部 → 回弹到底部 - 半径位置
       else if (centerY + ballRadius > wa.y + wa.height) sy = wa.y + wa.height - ballRadius;
 
-      // 保存主球中心位置
       set('ballPosition', { x: sx, y: sy });
 
-      // 如果有边缘回弹，调整窗口位置
       if (sx !== centerX || sy !== centerY) {
-        const newWindowX = sx - bounds.width / 2;
-        const newWindowY = sy - bounds.height / 2;
-        ballWin.setPosition(Math.round(newWindowX), Math.round(newWindowY));
+        dragWin.setBounds({
+          x: Math.round(sx - bounds.width / 2),
+          y: Math.round(sy - bounds.height / 2),
+          width: dragWinSize.width,
+          height: dragWinSize.height
+        });
       }
-    } else {
-      // 没有窗口时，假设传入的是中心位置
-      set('ballPosition', { x, y });
     }
+
+    dragWin = null;
   });
 
   ipcMain.on('ball:set-ignore-mouse-events', (event, ignore) => {
