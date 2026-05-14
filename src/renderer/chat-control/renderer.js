@@ -1,3 +1,4 @@
+const refreshBtn = document.getElementById('refresh-btn');
 const pinBtn = document.getElementById('pin-btn');
 const pinIconUnpinned = document.getElementById('pin-icon-unpinned');
 const pinIconPinned = document.getElementById('pin-icon-pinned');
@@ -54,6 +55,17 @@ pinBtn.addEventListener('click', async () => {
 // 初始化置顶状态
 window.chatAPI.isPinned().then(pinned => {
   updatePinIcon(pinned);
+});
+
+// 刷新按钮
+refreshBtn.addEventListener('click', () => {
+  // 添加旋转动画
+  refreshBtn.classList.add('spinning');
+  window.chatAPI.reload();
+  // 动画结束后移除类
+  setTimeout(() => {
+    refreshBtn.classList.remove('spinning');
+  }, 600);
 });
 
 // 最小化按钮

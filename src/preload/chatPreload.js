@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('chatAPI', {
   minimize: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
   isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  reload: () => ipcRenderer.invoke('window:reload'),
   onTitleUpdate: (callback) => {
     ipcRenderer.on('title:update', (event, title) => callback(title));
   },
