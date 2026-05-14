@@ -16,16 +16,24 @@ async function init() {
   opacityVal.textContent = opacity;
 }
 
+// input 事件：实时更新显示数值和悬浮球大小，但不触发缩放动画
 sizeSlider.addEventListener('input', () => {
-  const val = sizeSlider.value;
-  sizeVal.textContent = val;
-  window.deepseekAPI.setConfig('ballSize', Number(val));
+  sizeVal.textContent = sizeSlider.value;
+  window.deepseekAPI.setConfigSilent('ballSize', Number(sizeSlider.value));
+});
+
+// change 事件：鼠标释放后触发缩放动画
+sizeSlider.addEventListener('change', () => {
+  window.deepseekAPI.setConfig('ballSize', Number(sizeSlider.value));
 });
 
 opacitySlider.addEventListener('input', () => {
-  const val = parseFloat(opacitySlider.value);
-  opacityVal.textContent = val;
-  window.deepseekAPI.setConfig('ballOpacity', val);
+  opacityVal.textContent = opacitySlider.value;
+  window.deepseekAPI.setConfigSilent('ballOpacity', parseFloat(opacitySlider.value));
+});
+
+opacitySlider.addEventListener('change', () => {
+  window.deepseekAPI.setConfig('ballOpacity', parseFloat(opacitySlider.value));
 });
 
 resetBtn.addEventListener('click', async () => {

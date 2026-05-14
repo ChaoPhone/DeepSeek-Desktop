@@ -65,6 +65,17 @@ html, body {
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
+/* 刷新缩放动画：先缩小再快速放大 */
+#ball.refresh-pulse {
+  animation: pulse-scale 200ms ease-out;
+}
+
+@keyframes pulse-scale {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
 #ball-icon {
   width: 150%;
   height: 150%;

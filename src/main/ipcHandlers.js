@@ -110,15 +110,23 @@ function registerIpcHandlers() {
 
   ipcMain.handle('config:set', (event, { key, value }) => {
     set(key, value);
-    // Broadcast config change to ball renderer so it updates live
     const ballWin = getBallWindow();
     if (ballWin && !ballWin.isDestroyed()) {
       const fullConfig = get();
       ballWin.webContents.send('config:changed', fullConfig);
-      // ballSize 变化只影响 CSS 渲染，窗口大小固定不变
       if (key === 'ballSize') {
         refreshBallWindow();
       }
+    }
+    return true;
+  });
+
+  // 静默设置配置：只更新渲染器，不触发刷新动画
+  ipcMain.handle('config:set-silent', (event, { key, value }) => {
+    set(key, value);
+    const ballWin = getBallWindow();
+    if (ballWin && !ballWin.isDestroyed()) {
+      ballWin.webContents.send('config:changed', get());
     }
     return true;
   });
@@ -220,9 +228,11 @@ function toggleMaximize(win) {
     win.webContents.send('maximize:update', false);
     return false;
   } else {
-    // 最大化窗口
+    // 最大化窗口：使用窗口所在的显示器（多屏适配）
     savedWindowBounds.set(winId, win.getBounds());
-    const display = screen.getPrimaryDisplay();
+    // 获取窗口当前所在显示器，而非主显示器
+    const winBounds = win.getBounds();
+    const display = screen.getDisplayNearestPoint({ x: winBounds.x + winBounds.width / 2, y: winBounds.y + winBounds.height / 2 });
     const workArea = display.workArea;
     win.setSize(workArea.width, workArea.height);
     win.setPosition(workArea.x, workArea.y);

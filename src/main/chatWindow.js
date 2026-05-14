@@ -1,6 +1,6 @@
-const { BrowserWindow, BrowserView, app } = require('electron');
+const { BrowserWindow, BrowserView, app, screen } = require('electron');
 const path = require('path');
-const { refreshBallWindow } = require('./floatingBall');
+const { refreshBallWindow, getBallWindow } = require('./floatingBall');
 const { AI_SITES, getAIConfig } = require('./aiConfig');
 const { get } = require('./config');
 
@@ -37,6 +37,40 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
     minHeight: 400
   };
 
+  // 获取悬浮球所在显示器（多屏适配）
+  const ballWin = getBallWindow();
+  let targetDisplay = screen.getPrimaryDisplay();
+  if (ballWin && !ballWin.isDestroyed()) {
+    const ballBounds = ballWin.getBounds();
+    const ballCenterX = ballBounds.x + ballBounds.width / 2;
+    const ballCenterY = ballBounds.y + ballBounds.height / 2;
+    targetDisplay = screen.getDisplayNearestPoint({ x: ballCenterX, y: ballCenterY });
+  }
+  const workArea = targetDisplay.workArea;
+
+  // 计算窗口位置：在悬浮球所在显示器上，靠近悬浮球位置
+  let winX, winY;
+  if (savedBounds) {
+    // 有保存的位置，检查是否在有效显示器范围内
+    winX = savedBounds.x;
+    winY = savedBounds.y;
+  } else {
+    // 无保存位置，在悬浮球所在显示器上居中偏右
+    const ballPos = get('ballPosition') || { x: workArea.x + workArea.width / 2, y: workArea.y + workArea.height / 2 };
+    // 窗口在悬浮球右侧或左侧（根据悬浮球位置）
+    const winWidth = defaults.width;
+    const winHeight = defaults.height;
+
+    // 悬浮球在屏幕左半边 → 窗口在右侧，反之在左侧
+    if (ballPos.x < workArea.x + workArea.width / 2) {
+      winX = Math.min(ballPos.x + 80, workArea.x + workArea.width - winWidth - 20);
+    } else {
+      winX = Math.max(ballPos.x - winWidth - 80, workArea.x + 20);
+    }
+    // 窗口垂直居中，但确保在可见区域
+    winY = Math.max(workArea.y + 20, Math.min(ballPos.y - winHeight / 2, workArea.y + workArea.height - winHeight - 20));
+  }
+
   // 主窗口使用Mica背景，避免白色边框问题
   // GLM 窗口：如果 savedBounds.width 与 GLM 默认宽度差距较大，使用 GLM 默认宽度
   let winWidth = savedBounds?.width;
@@ -51,8 +85,8 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   const win = new BrowserWindow({
     width: winWidth || defaults.width,
     height: savedBounds?.height || defaults.height,
-    x: savedBounds?.x,
-    y: savedBounds?.y,
+    x: winX,
+    y: winY,
     minWidth: defaults.minWidth,
     minHeight: defaults.minHeight,
     frame: false,
@@ -72,6 +106,9 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
       sandbox: false
     }
   });
+
+  // 记录窗口所在的显示器 ID，用于最大化适配
+  win.displayId = targetDisplay.id;
 
   // 加载控制栏HTML（包含拖动区域和按钮）
   const controlHtmlPath = path.join(__dirname, '../renderer/chat-control/index.html');
@@ -128,13 +165,12 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   win.on('closed', () => {
     views.delete(win.chatWindowId);
     windows.delete(win.chatWindowId);
-    // 刷新悬浮球窗口，防止白色条
-    setTimeout(refreshBallWindow, 100);
+    refreshBallWindow();
   });
 
-  // 窗口失去焦点时刷新悬浮球
+  // 聊天窗口失去焦点时，刷新悬浮球（解决覆盖区域的白条问题）
   win.on('blur', () => {
-    setTimeout(refreshBallWindow, 50);
+    refreshBallWindow();
   });
 
   // 窗口最大化状态变化时通知控制栏更新图标（双击标题栏等触发）

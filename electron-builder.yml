@@ -15,8 +15,6 @@ win:
   target:
     - target: nsis
       arch: [x64]
-    - target: portable
-      arch: [x64]
   icon: assets/app.ico
   artifactName: ${productName}-${version}-${arch}.${ext}
 
@@ -26,9 +24,6 @@ nsis:
   createDesktopShortcut: true
   shortcutName: DeepSeek Desktop
   artifactName: DeepSeek-Desktop-Setup-${version}.${ext}
-
-portable:
-  artifactName: DeepSeek-Desktop-Portable-${version}.${ext}
 
 extraMetadata:
   main: src/main/index.js

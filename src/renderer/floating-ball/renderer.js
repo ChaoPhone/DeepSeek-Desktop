@@ -194,4 +194,12 @@ window.deepseekAPI.onConfigChanged((newConfig) => {
   applyConfig(newConfig);
 });
 
+// 监听刷新动画事件：触发缩放动画
+window.deepseekAPI.onRefreshAnimation(() => {
+  ball.classList.add('refresh-pulse');
+  setTimeout(() => {
+    ball.classList.remove('refresh-pulse');
+  }, 200);
+});
+
 applyConfig();

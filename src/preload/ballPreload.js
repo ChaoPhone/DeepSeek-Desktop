@@ -46,6 +46,7 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
 
   getConfig: (key) => ipcRenderer.invoke('config:get', key),
   setConfig: (key, value) => ipcRenderer.invoke('config:set', { key, value }),
+  setConfigSilent: (key, value) => ipcRenderer.invoke('config:set-silent', { key, value }),
 
   setAutoStart: (enabled) => ipcRenderer.invoke('auto-start:set', enabled),
 
@@ -54,5 +55,8 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
 
   onConfigChanged: (callback) => {
     ipcRenderer.on('config:changed', (event, newConfig) => callback(newConfig));
+  },
+  onRefreshAnimation: (callback) => {
+    ipcRenderer.on('ball:refresh-animation', () => callback());
   }
 });

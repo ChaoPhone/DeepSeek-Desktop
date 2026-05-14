@@ -18,11 +18,12 @@ function getWindowSize() {
 
 // 强制重绘悬浮球窗口，解决白色条问题
 function refreshBallWindow() {
-  if (ballWin && !ballWin.isDestroyed()) {
-    ballWin.setBackgroundColor('#00000000');
-    ballWin.hide();
-    ballWin.show();
-  }
+  if (!ballWin || ballWin.isDestroyed()) return;
+
+  // 用最稳定的 hide/show 方法解决白条
+  ballWin.setBackgroundColor('#00000000');
+  ballWin.hide();
+  ballWin.show();
 }
 
 // 获取主球中心位置（从 ballPosition 获取的是主球中心位置）
@@ -101,9 +102,9 @@ function createFloatingBall() {
   ballWin.on('show', clearTitle);
   ballWin.on('focus', clearTitle);
 
-  // 焦点变化时强制重绘，防止白色条
+  // 焦点变化时刷新，解决其他窗口覆盖后的白条问题
   ballWin.on('blur', () => {
-    setTimeout(refreshBallWindow, 50);
+    setTimeout(() => refreshBallWindow(), 50);
   });
 
   ballWin.show();
@@ -187,8 +188,7 @@ function getBallWindow() {
 
 function updateBallSize(size) {
   // 窗口大小固定不变，ballSize 只影响 CSS 渲染
-  // 此函数仅用于刷新渲染器
-  refreshBallWindow();
+  // 此函数不再触发刷新，避免不必要的动画和白条
 }
 
 module.exports = {
