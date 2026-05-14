@@ -36,22 +36,28 @@ function registerIpcHandlers() {
 
       const display = screen.getDisplayNearestPoint({ x: centerX, y: centerY });
       const wa = display.workArea;
-      const threshold = 30;
+      // 使用实际悬浮球大小计算半径，确保球边缘不超出屏幕
+      const ballSize = get('ballSize') || 40;
+      const ballRadius = ballSize / 2;
 
       let sx = centerX, sy = centerY;
-      if (centerX - wa.x < threshold) sx = wa.x + threshold;
-      else if (wa.x + wa.width - centerX < threshold) sx = wa.x + wa.width - threshold;
-      if (centerY - wa.y < threshold) sy = wa.y + threshold;
-      else if (wa.y + wa.height - centerY < threshold) sy = wa.y + wa.height - threshold;
+      // 主球左边缘超出工作区域左侧 → 回弹到左边缘 + 半径位置
+      if (centerX - ballRadius < wa.x) sx = wa.x + ballRadius;
+      // 主球右边缘超出工作区域右侧 → 回弹到右边缘 - 半径位置
+      else if (centerX + ballRadius > wa.x + wa.width) sx = wa.x + wa.width - ballRadius;
+      // 主球上边缘超出工作区域顶部 → 回弹到顶部 + 半径位置
+      if (centerY - ballRadius < wa.y) sy = wa.y + ballRadius;
+      // 主球下边缘超出工作区域底部 → 回弹到底部 - 半径位置
+      else if (centerY + ballRadius > wa.y + wa.height) sy = wa.y + wa.height - ballRadius;
 
       // 保存主球中心位置
       set('ballPosition', { x: sx, y: sy });
 
-      // 如果有边缘吸附，调整窗口位置
+      // 如果有边缘回弹，调整窗口位置
       if (sx !== centerX || sy !== centerY) {
         const newWindowX = sx - bounds.width / 2;
         const newWindowY = sy - bounds.height / 2;
-        ballWin.setPosition(newWindowX, newWindowY);
+        ballWin.setPosition(Math.round(newWindowX), Math.round(newWindowY));
       }
     } else {
       // 没有窗口时，假设传入的是中心位置
