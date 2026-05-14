@@ -1,10 +1,14 @@
 const { autoUpdater } = require('electron-updater');
-const { dialog, BrowserWindow } = require('electron');
+const { dialog, app } = require('electron');
 const { getBallWindow } = require('./floatingBall');
 
 let updateCheckTimer = null;
+let logger = null;
 
-function setupAutoUpdater() {
+function setupAutoUpdater(log) {
+  logger = log;
+  logger.log('[AutoUpdater] setupAutoUpdater called, isPackaged:', app.isPackaged);
+
   // 不自动下载，用户确认后才下载
   autoUpdater.autoDownload = false;
   // 不自动安装，用户确认后才安装
@@ -12,11 +16,12 @@ function setupAutoUpdater() {
 
   // 检查更新失败
   autoUpdater.on('error', (err) => {
-    console.error('自动更新错误:', err);
+    logger.log('[AutoUpdater] 错误:', err.message || err);
   });
 
   // 发现新版本
   autoUpdater.on('update-available', (info) => {
+    logger.log('[AutoUpdater] 发现新版本:', info.version);
     const ballWin = getBallWindow();
     const parentWin = ballWin && !ballWin.isDestroyed() ? ballWin : null;
 
@@ -30,23 +35,25 @@ function setupAutoUpdater() {
       cancelId: 1
     }).then(result => {
       if (result.response === 0) {
+        logger.log('[AutoUpdater] 用户选择下载');
         autoUpdater.downloadUpdate();
       }
     });
   });
 
   // 没有新版本
-  autoUpdater.on('update-not-available', () => {
-    console.log('当前已是最新版本');
+  autoUpdater.on('update-not-available', (info) => {
+    logger.log('[AutoUpdater] 当前已是最新版本:', info?.version || 'unknown');
   });
 
   // 下载进度
   autoUpdater.on('download-progress', (progress) => {
-    console.log(`下载进度: ${progress.percent.toFixed(1)}%`);
+    logger.log(`[AutoUpdater] 下载进度: ${progress.percent.toFixed(1)}%`);
   });
 
   // 更新已下载完成
   autoUpdater.on('update-downloaded', (info) => {
+    logger.log('[AutoUpdater] 更新已下载:', info.version);
     const ballWin = getBallWindow();
     const parentWin = ballWin && !ballWin.isDestroyed() ? ballWin : null;
 
@@ -60,13 +67,16 @@ function setupAutoUpdater() {
       cancelId: 1
     }).then(result => {
       if (result.response === 0) {
+        logger.log('[AutoUpdater] 用户选择安装');
         autoUpdater.quitAndInstall();
       }
     });
   });
 
-  // 启动时检查更新
-  checkForUpdates();
+  // 启动时检查更新（延迟 3 秒）
+  setTimeout(() => {
+    checkForUpdates();
+  }, 3000);
 
   // 每小时检查一次更新
   updateCheckTimer = setInterval(() => {
@@ -75,8 +85,9 @@ function setupAutoUpdater() {
 }
 
 function checkForUpdates() {
+  if (logger) logger.log('[AutoUpdater] 正在检查更新...');
   autoUpdater.checkForUpdates().catch(err => {
-    console.error('检查更新失败:', err);
+    if (logger) logger.log('[AutoUpdater] 检查更新失败:', err.message || err);
   });
 }
 

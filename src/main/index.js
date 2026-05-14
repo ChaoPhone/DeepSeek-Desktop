@@ -54,7 +54,7 @@ if (!gotSingleLock) {
     // 自动更新（仅在生产环境启用）
     if (app.isPackaged) {
       const { setupAutoUpdater } = require('./autoUpdater');
-      setupAutoUpdater();
+      setupAutoUpdater(logger);
       logger.log('AutoUpdater enabled');
     }
 
