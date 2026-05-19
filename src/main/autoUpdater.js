@@ -1,6 +1,7 @@
 const { autoUpdater } = require('electron-updater');
-const { dialog, app } = require('electron');
+const { dialog, app, session } = require('electron');
 const { getBallWindow } = require('./floatingBall');
+const { get } = require('./config');
 
 let updateCheckTimer = null;
 let logger = null;
@@ -13,6 +14,9 @@ function setupAutoUpdater(log) {
   autoUpdater.autoDownload = false;
   // 不自动安装，用户确认后才安装
   autoUpdater.autoInstallOnAppQuit = true;
+
+  // 应用代理设置到 autoUpdater 的 session
+  applyProxyForUpdater();
 
   // 检查更新失败
   autoUpdater.on('error', (err) => {
@@ -98,8 +102,37 @@ function cleanupAutoUpdater() {
   }
 }
 
+// 应用代理设置到 autoUpdater 的 session
+function applyProxyForUpdater() {
+  const proxyEnabled = get('proxyEnabled');
+  const proxyUrl = get('proxyUrl');
+
+  if (proxyEnabled && proxyUrl) {
+    let proxyRules = proxyUrl;
+    if (!proxyUrl.includes('://')) {
+      proxyRules = `http://${proxyUrl}`;
+    }
+
+    // electron-updater 使用 defaultSession
+    session.defaultSession.setProxy({ proxyRules })
+      .then(() => {
+        if (logger) logger.log('[AutoUpdater] 代理已应用到更新检查', { proxyRules });
+      })
+      .catch(err => {
+        if (logger) logger.log('[AutoUpdater] 代理应用失败:', err.message);
+      });
+  } else {
+    // 清除代理
+    session.defaultSession.setProxy({ proxyRules: '' })
+      .then(() => {
+        if (logger) logger.log('[AutoUpdater] 代理已清除');
+      });
+  }
+}
+
 module.exports = {
   setupAutoUpdater,
   checkForUpdates,
-  cleanupAutoUpdater
+  cleanupAutoUpdater,
+  applyProxyForUpdater
 };

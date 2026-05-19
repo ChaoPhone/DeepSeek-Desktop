@@ -6,6 +6,7 @@ const { setAutoLaunch } = require('./autoLaunch');
 const { getBallWindow, updateBallSize, refreshBallWindow } = require('./floatingBall');
 const { getOtherAIs } = require('./aiConfig');
 const { log } = require('./logger');
+const { applyProxyForUpdater } = require('./autoUpdater');
 
 // 拖动状态
 let dragWin = null;
@@ -259,6 +260,8 @@ function registerIpcHandlers() {
     log('INFO', 'Proxy 配置已更新', { enabled, url });
     // 更新所有已打开的聊天窗口
     updateAllProxySettings();
+    // 更新 autoUpdater 的代理设置（确保更新检查也能走代理）
+    applyProxyForUpdater();
     return true;
   });
 }
