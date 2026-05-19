@@ -1,10 +1,12 @@
 const { BrowserWindow, screen } = require('electron');
 const path = require('path');
 const { get, set } = require('./config');
+const { log } = require('./logger');
 
 let ballWin = null;
 let moveTimer = null;
 let mouseCheckTimer = null;
+let topCheckTimer = null; // 置顶状态检测定时器
 
 // 常量：窗口始终使用展开后的大小（固定不变，避免位移）
 const HOVER_PADDING = 8;
@@ -65,7 +67,7 @@ function createFloatingBall() {
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
-    alwaysOnTop: true,
+    alwaysOnTop: false, // 初始不置顶，根据配置动态设置
     skipTaskbar: true,
     resizable: false,
     hasShadow: false,
@@ -85,8 +87,10 @@ function createFloatingBall() {
   const alwaysOnTop = get('ballAlwaysOnTop') !== false;
   if (alwaysOnTop) {
     ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+    log('INFO', '悬浮球创建，置顶已启用', { level: 'screen-saver', relativeLevel: 1 });
   } else {
     ballWin.setAlwaysOnTop(false);
+    log('INFO', '悬浮球创建，置顶已禁用');
   }
   ballWin.setTitle('');
 
@@ -109,7 +113,17 @@ function createFloatingBall() {
 
   // 焦点变化时刷新，解决其他窗口覆盖后的白条问题
   ballWin.on('blur', () => {
+    log('DEBUG', '悬浮球失去焦点', { isAlwaysOnTop: ballWin.isAlwaysOnTop() });
     setTimeout(() => refreshBallWindow(), 50);
+    // 失焦后强制重新设置置顶（解决某些窗口抢占置顶的问题）
+    const configOnTop = get('ballAlwaysOnTop') !== false;
+    if (configOnTop && ballWin && !ballWin.isDestroyed()) {
+      ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+    }
+  });
+
+  ballWin.on('focus', () => {
+    log('DEBUG', '悬浮球获得焦点', { isAlwaysOnTop: ballWin.isAlwaysOnTop() });
   });
 
   ballWin.show();
@@ -133,7 +147,25 @@ function createFloatingBall() {
       clearInterval(mouseCheckTimer);
       mouseCheckTimer = null;
     }
+    if (topCheckTimer) {
+      clearInterval(topCheckTimer);
+      topCheckTimer = null;
+    }
   });
+
+  // 定时检测置顶状态（每3秒），确保悬浮球始终在最上层
+  topCheckTimer = setInterval(() => {
+    if (!ballWin || ballWin.isDestroyed()) return;
+
+    const configOnTop = get('ballAlwaysOnTop') !== false;
+    const actualOnTop = ballWin.isAlwaysOnTop();
+
+    // 如果配置要求置顶但实际未置顶，强制重新设置
+    if (configOnTop && !actualOnTop) {
+      log('WARN', '置顶状态丢失，正在修复', { expected: configOnTop, actual: actualOnTop });
+      ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+    }
+  }, 3000);
 
   // 鼠标穿透检测：检测主球和小球圆形范围
   mouseCheckTimer = setInterval(() => {
@@ -201,9 +233,25 @@ function updateBallSize(size) {
   // 此函数不再触发刷新，避免不必要的动画和白条
 }
 
+// 更新悬浮球置顶状态
+function updateAlwaysOnTop(enabled) {
+  if (!ballWin || ballWin.isDestroyed()) return;
+
+  if (enabled) {
+    ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+    log('INFO', '悬浮球置顶已启用');
+  } else {
+    ballWin.setAlwaysOnTop(false, 'normal');
+    log('INFO', '悬浮球置顶已禁用');
+    // 取消置顶后，让窗口降到普通层级，可能被其他窗口覆盖
+    ballWin.moveTop(); // 先移到同级最上，然后自然被其他窗口覆盖
+  }
+}
+
 module.exports = {
   createFloatingBall,
   getBallWindow,
   updateBallSize,
-  refreshBallWindow
+  refreshBallWindow,
+  updateAlwaysOnTop
 };

@@ -43,6 +43,14 @@ const schema = {
     type: 'string',
     default: 'deepseek',
     enum: ['deepseek', 'gpt', 'gemini', 'glm']
+  },
+  proxyEnabled: {
+    type: 'boolean',
+    default: false
+  },
+  proxyUrl: {
+    type: 'string',
+    default: ''
   }
 };
 

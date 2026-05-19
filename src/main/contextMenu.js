@@ -3,7 +3,7 @@ const path = require('path');
 const { get, set } = require('./config');
 const { setAutoLaunch } = require('./autoLaunch');
 const { AI_SITES } = require('./aiConfig');
-const { refreshBallWindow, getBallWindow } = require('./floatingBall');
+const { refreshBallWindow, getBallWindow, updateAlwaysOnTop } = require('./floatingBall');
 
 function showContextMenu(ballWin) {
   const config = get();
@@ -32,15 +32,8 @@ function showContextMenu(ballWin) {
       checked: config.ballAlwaysOnTop !== false,
       click: (menuItem) => {
         set('ballAlwaysOnTop', menuItem.checked);
-        // 更新悬浮球置顶状态
-        const ballWin = getBallWindow();
-        if (ballWin && !ballWin.isDestroyed()) {
-          if (menuItem.checked) {
-            ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
-          } else {
-            ballWin.setAlwaysOnTop(false);
-          }
-        }
+        // 使用专门的函数更新置顶状态
+        updateAlwaysOnTop(menuItem.checked);
       }
     },
     {
@@ -86,7 +79,7 @@ function openSettingsWindow() {
   const ballWin = getBallWindow();
   let settingsX, settingsY;
   const settingsWidth = 360;
-  const settingsHeight = 280;
+  const settingsHeight = 400; // 增加高度以容纳代理设置
 
   if (ballWin && !ballWin.isDestroyed()) {
     const ballBounds = ballWin.getBounds();

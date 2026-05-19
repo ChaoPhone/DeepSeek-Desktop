@@ -68,5 +68,9 @@ contextBridge.exposeInMainWorld('deepseekAPI', {
   },
   onRefreshAnimation: (callback) => {
     ipcRenderer.on('ball:refresh-animation', () => callback());
-  }
+  },
+
+  // Proxy 相关 API
+  getProxy: () => ipcRenderer.invoke('proxy:get'),
+  setProxy: (config) => ipcRenderer.invoke('proxy:set', config)
 });

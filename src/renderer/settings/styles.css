@@ -76,3 +76,55 @@ input[type="range"]::-webkit-slider-thumb {
 #reset-btn:hover {
   background: #45475a;
 }
+
+#save-proxy-btn {
+  padding: 8px 24px;
+  border-radius: 6px;
+  border: 1px solid #45475a;
+  background: #3A6AD4;
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#save-proxy-btn:hover {
+  background: #4a7ae4;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #45475a;
+  background: #313244;
+  color: #cdd6f4;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus {
+  border-color: #3A6AD4;
+}
+
+input[type="text"]::placeholder {
+  color: #6c7086;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3A6AD4;
+}
+
+.field label input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}

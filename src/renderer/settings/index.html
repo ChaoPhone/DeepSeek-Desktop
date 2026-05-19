@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>自定义外观</title>
+  <title>设置</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
-    <h2>自定义外观</h2>
+    <h2>外观设置</h2>
 
     <div class="field">
       <label>悬浮球大小 <span id="size-val">40</span>px</label>
@@ -20,8 +20,23 @@
       <input type="range" id="ball-opacity" min="0.3" max="1.0" step="0.05" value="0.9">
     </div>
 
+    <h2>代理设置</h2>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" id="proxy-enabled">
+        启用代理
+      </label>
+    </div>
+
+    <div class="field">
+      <label>代理地址</label>
+      <input type="text" id="proxy-url" placeholder="如: 127.0.0.1:7890 或 socks5://127.0.0.1:1080">
+    </div>
+
     <div class="actions">
       <button id="reset-btn">恢复默认</button>
+      <button id="save-proxy-btn">保存代理</button>
     </div>
   </div>
   <script src="renderer.js"></script>

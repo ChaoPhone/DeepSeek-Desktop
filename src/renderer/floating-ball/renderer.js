@@ -135,10 +135,14 @@ miniBalls.forEach(miniBall => {
     clearTimeout(expandTimer);
     clearTimeout(collapseTimer);
     expandBalls();
+    // 触发跳动动画
+    miniBall.classList.add('mini-hover');
+    setTimeout(() => miniBall.classList.remove('mini-hover'), 200);
   });
 
   miniBall.addEventListener('mouseleave', () => {
     collapseBalls();
+    miniBall.classList.remove('mini-hover');
   });
 
   // 小球点击：直接打开对应 AI

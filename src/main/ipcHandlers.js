@@ -1,10 +1,11 @@
 const { ipcMain, BrowserWindow, screen } = require('electron');
 const { get, set } = require('./config');
-const { openNewChatWindow, getViewById } = require('./chatWindow');
+const { openNewChatWindow, getViewById, updateAllProxySettings } = require('./chatWindow');
 const { showContextMenu } = require('./contextMenu');
 const { setAutoLaunch } = require('./autoLaunch');
 const { getBallWindow, updateBallSize, refreshBallWindow } = require('./floatingBall');
 const { getOtherAIs } = require('./aiConfig');
+const { log } = require('./logger');
 
 // 拖动状态
 let dragWin = null;
@@ -241,6 +242,23 @@ function registerIpcHandlers() {
     if (view) {
       view.webContents.reload();
     }
+    return true;
+  });
+
+  // Proxy 设置相关
+  ipcMain.handle('proxy:get', () => {
+    return {
+      enabled: get('proxyEnabled'),
+      url: get('proxyUrl')
+    };
+  });
+
+  ipcMain.handle('proxy:set', (event, { enabled, url }) => {
+    set('proxyEnabled', enabled);
+    set('proxyUrl', url || '');
+    log('INFO', 'Proxy 配置已更新', { enabled, url });
+    // 更新所有已打开的聊天窗口
+    updateAllProxySettings();
     return true;
   });
 }

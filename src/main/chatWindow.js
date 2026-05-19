@@ -1,8 +1,9 @@
-const { BrowserWindow, BrowserView, app, screen } = require('electron');
+const { BrowserWindow, BrowserView, app, screen, session } = require('electron');
 const path = require('path');
 const { refreshBallWindow, getBallWindow } = require('./floatingBall');
 const { AI_SITES, getAIConfig } = require('./aiConfig');
 const { get } = require('./config');
+const { log } = require('./logger');
 
 const windows = new Map();
 const views = new Map();
@@ -133,6 +134,9 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   win.setBrowserView(view);
   views.set(id, view);
 
+  // 应用代理设置（如果已配置）
+  applyProxySettings(view);
+
   // BrowserView位于拖动区域下方
   const [width, height] = win.getSize();
   view.setBounds({ x: 0, y: 36, width: width, height: height - 36 });
@@ -223,11 +227,53 @@ function saveAllBounds() {
   return bounds;
 }
 
+// 应用代理设置到 BrowserView
+function applyProxySettings(view) {
+  if (!view) return;
+
+  const proxyEnabled = get('proxyEnabled');
+  const proxyUrl = get('proxyUrl');
+
+  if (proxyEnabled && proxyUrl) {
+    // 解析代理 URL（支持 http/https/socks5）
+    // 格式: protocol://host:port 或 host:port
+    let proxyRules = proxyUrl;
+    if (!proxyUrl.includes('://')) {
+      proxyRules = `http://${proxyUrl}`; // 默认 HTTP 代理
+    }
+
+    view.webContents.session.setProxy({ proxyRules })
+      .then(() => {
+        log('INFO', '代理已应用', { proxyRules });
+      })
+      .catch(err => {
+        log('ERROR', '代理设置失败', { error: err.message });
+      });
+  } else {
+    // 清除代理设置
+    view.webContents.session.setProxy({ proxyRules: '' })
+      .then(() => {
+        log('INFO', '代理已清除');
+      });
+  }
+}
+
+// 更新所有聊天窗口的代理设置
+function updateAllProxySettings() {
+  views.forEach((view) => {
+    if (view && !view.webContents.isDestroyed()) {
+      applyProxySettings(view);
+    }
+  });
+}
+
 module.exports = {
   openNewChatWindow,
   getAllChatWindows,
   getChatWindowById,
   getViewById,
   closeAllChatWindows,
-  saveAllBounds
+  saveAllBounds,
+  applyProxySettings,
+  updateAllProxySettings
 };
