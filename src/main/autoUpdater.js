@@ -43,12 +43,26 @@ function setupAutoUpdater() {
     const ballWin = getBallWindow();
     const parentWin = ballWin && !ballWin.isDestroyed() ? ballWin : null;
 
+    // 提取更新内容（从 releaseNotes 中）
+    let updateNotes = '';
+    if (info.releaseNotes) {
+      if (Array.isArray(info.releaseNotes)) {
+        updateNotes = info.releaseNotes.map(note => note.note || note).join('\n');
+      } else if (typeof info.releaseNotes === 'string') {
+        updateNotes = info.releaseNotes;
+      }
+      // 截取前 200 字符
+      if (updateNotes.length > 200) {
+        updateNotes = updateNotes.substring(0, 200) + '...';
+      }
+    }
+
     dialog.showMessageBox(parentWin, {
       type: 'info',
-      title: '发现新版本',
-      message: `发现新版本 ${info.version}`,
-      detail: '是否立即下载更新？',
-      buttons: ['立即下载', '稍后提醒'],
+      title: 'DeepSeek Desktop 有更新啦 (◕‿◕)',
+      message: `发现新版本 v${info.version}`,
+      detail: updateNotes || '有新功能等你体验哦~ 是否立即下载？',
+      buttons: ['马上下载 ⬇️', '稍后提醒'],
       defaultId: 0,
       cancelId: 1
     }).then(result => {
@@ -78,12 +92,27 @@ function setupAutoUpdater() {
     const ballWin = getBallWindow();
     const parentWin = ballWin && !ballWin.isDestroyed() ? ballWin : null;
 
+    // 提取更新内容（从 releaseNotes 中）
+    let updateNotes = '';
+    if (info.releaseNotes) {
+      // releaseNotes 可能是字符串或数组
+      if (Array.isArray(info.releaseNotes)) {
+        updateNotes = info.releaseNotes.map(note => note.note || note).join('\n');
+      } else if (typeof info.releaseNotes === 'string') {
+        updateNotes = info.releaseNotes;
+      }
+      // 截取前 200 字符，避免弹窗过长
+      if (updateNotes.length > 200) {
+        updateNotes = updateNotes.substring(0, 200) + '...';
+      }
+    }
+
     dialog.showMessageBox(parentWin, {
       type: 'info',
-      title: '更新已下载',
-      message: `新版本 ${info.version} 已下载完成`,
-      detail: '是否立即安装更新？应用将自动重启。',
-      buttons: ['立即安装', '稍后安装'],
+      title: 'DeepSeek Desktop 更新就绪 ✨',
+      message: `新版本 v${info.version} 已下载完成`,
+      detail: updateNotes || '应用将自动重启完成安装~',
+      buttons: ['立即安装 🚀', '稍后安装'],
       defaultId: 0,
       cancelId: 1
     }).then(result => {

@@ -3,7 +3,7 @@ const path = require('path');
 const { get, set } = require('./config');
 const { setAutoLaunch } = require('./autoLaunch');
 const { AI_SITES } = require('./aiConfig');
-const { refreshBallWindow, getBallWindow, updateAlwaysOnTop } = require('./floatingBall');
+const { refreshBallWindow, getBallWindow } = require('./floatingBall');
 
 function showContextMenu(ballWin) {
   const config = get();
@@ -27,16 +27,6 @@ function showContextMenu(ballWin) {
     ...aiMenuItems,
     { type: 'separator' },
     {
-      label: '主球置顶',
-      type: 'checkbox',
-      checked: config.ballAlwaysOnTop !== false,
-      click: (menuItem) => {
-        set('ballAlwaysOnTop', menuItem.checked);
-        // 使用专门的函数更新置顶状态
-        updateAlwaysOnTop(menuItem.checked);
-      }
-    },
-    {
       label: '开机自启',
       type: 'checkbox',
       checked: config.autoStart,
@@ -46,7 +36,7 @@ function showContextMenu(ballWin) {
     },
     { type: 'separator' },
     {
-      label: '自定义外观...',
+      label: '自定义设置...',
       click: () => {
         openSettingsWindow();
       }
@@ -61,10 +51,15 @@ function showContextMenu(ballWin) {
   ];
 
   const menu = Menu.buildFromTemplate(template);
-  menu.popup({ window: ballWin });
 
-  // 注意：菜单关闭时不触发刷新，因为点击其他窗口是正常行为
-  // 只有菜单操作（如切换AI）才需要刷新，已在各自的click回调中处理
+  // 使用 callback 让菜单在点击外部时自动关闭
+  menu.popup({
+    window: ballWin,
+    callback: () => {
+      // 菜单关闭后刷新悬浮球
+      refreshBallWindow();
+    }
+  });
 }
 
 let settingsWin = null;
@@ -108,11 +103,11 @@ function openSettingsWindow() {
 
   settingsWin = new BrowserWindow({
     width: settingsWidth,
-    height: settingsHeight,
+    height: 450, // 增加高度以容纳置顶设置
     x: Math.round(settingsX) || undefined,
     y: Math.round(settingsY) || undefined,
     resizable: false,
-    title: '自定义外观',
+    title: '设置',
     parent: getBallWindow(),
     modal: false,
     webPreferences: {

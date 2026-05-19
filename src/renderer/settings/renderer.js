@@ -3,9 +3,10 @@ const sizeVal = document.getElementById('size-val');
 const opacitySlider = document.getElementById('ball-opacity');
 const opacityVal = document.getElementById('opacity-val');
 const resetBtn = document.getElementById('reset-btn');
+const alwaysOnTopCheckbox = document.getElementById('always-on-top');
 const proxyEnabledCheckbox = document.getElementById('proxy-enabled');
 const proxyUrlInput = document.getElementById('proxy-url');
-const saveProxyBtn = document.getElementById('save-proxy-btn');
+const saveAllBtn = document.getElementById('save-all-btn');
 
 const DEFAULTS = { ballSize: 40, ballOpacity: 0.9 };
 
@@ -13,11 +14,13 @@ async function init() {
   // 加载外观设置
   const size = await window.deepseekAPI.getConfig('ballSize');
   const opacity = await window.deepseekAPI.getConfig('ballOpacity');
+  const alwaysOnTop = await window.deepseekAPI.getConfig('ballAlwaysOnTop');
 
   sizeSlider.value = size;
   sizeVal.textContent = size;
   opacitySlider.value = opacity;
   opacityVal.textContent = opacity;
+  alwaysOnTopCheckbox.checked = alwaysOnTop !== false;
 
   // 加载代理设置
   if (window.deepseekAPI.getProxy) {
@@ -47,8 +50,14 @@ opacitySlider.addEventListener('change', () => {
   window.deepseekAPI.setConfig('ballOpacity', parseFloat(opacitySlider.value));
 });
 
-// 代理设置保存
-saveProxyBtn.addEventListener('click', async () => {
+// 置顶选项实时更新
+alwaysOnTopCheckbox.addEventListener('change', () => {
+  window.deepseekAPI.setConfig('ballAlwaysOnTop', alwaysOnTopCheckbox.checked);
+});
+
+// 保存所有设置
+saveAllBtn.addEventListener('click', async () => {
+  // 保存代理设置
   if (window.deepseekAPI.setProxy) {
     await window.deepseekAPI.setProxy({
       enabled: proxyEnabledCheckbox.checked,
