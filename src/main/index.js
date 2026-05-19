@@ -8,19 +8,8 @@ app.commandLine.appendSwitch('disable-features', 'Windows11SnapLayouts');
 const path = require('path');
 const fs = require('fs');
 
-// Debug log to file
-function makeLogger() {
-  let logPath;
-  return {
-    init: (dir) => { logPath = path.join(dir, 'app.log'); },
-    log: (...args) => {
-      const line = `[${new Date().toISOString()}] ${args.join(' ')}\n`;
-      try { fs.appendFileSync(logPath, line); } catch (e) {}
-      console.log(...args);
-    }
-  };
-}
-const logger = makeLogger();
+// 使用统一的日志模块
+const { init: initLogger, log } = require('./logger');
 
 const gotSingleLock = app.requestSingleInstanceLock();
 if (!gotSingleLock) {
@@ -33,29 +22,30 @@ if (!gotSingleLock) {
   });
 
   app.whenReady().then(() => {
-    logger.init(app.getPath('userData'));
-    logger.log('=== App started ===');
+    // 初始化日志模块
+    initLogger();
+    log('INFO', '=== App started ===');
 
     const { initConfig, get } = require('./config');
     initConfig();
-    logger.log('Config OK, ballSize=', get('ballSize'));
+    log('INFO', 'Config OK', { ballSize: get('ballSize') });
 
     const { initAutoLaunch } = require('./autoLaunch');
     initAutoLaunch();
 
     const { createFloatingBall } = require('./floatingBall');
     createFloatingBall();
-    logger.log('Ball window created');
+    log('INFO', 'Ball window created');
 
     const { registerIpcHandlers } = require('./ipcHandlers');
     registerIpcHandlers();
-    logger.log('IPC registered');
+    log('INFO', 'IPC registered');
 
     // 自动更新（仅在生产环境启用）
     if (app.isPackaged) {
       const { setupAutoUpdater } = require('./autoUpdater');
-      setupAutoUpdater(logger);
-      logger.log('AutoUpdater enabled');
+      setupAutoUpdater();
+      log('INFO', 'AutoUpdater enabled');
     }
 
     // Restore last session chat windows
@@ -71,7 +61,7 @@ if (!gotSingleLock) {
       }
     }
 
-    logger.log('=== Ready ===');
+    log('INFO', '=== Ready ===');
   });
 
   app.on('window-all-closed', () => {});

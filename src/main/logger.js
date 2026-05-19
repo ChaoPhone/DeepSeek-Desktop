@@ -1,14 +1,26 @@
 const fs = require('fs');
 const path = require('path');
+const { app } = require('electron');
 
-// 日志文件路径：项目根目录下的 logs 文件夹
-const logDir = path.join(__dirname, '../../logs');
-const logFile = path.join(logDir, 'app.log');
+let logDir = null;
+let logFile = null;
+
+// 初始化日志目录（必须在 app ready 后调用）
+function init() {
+  if (logDir) return; // 已初始化
+  logDir = path.join(app.getPath('userData'), 'logs');
+  logFile = path.join(logDir, 'app.log');
+}
 
 // 确保日志目录存在
 function ensureLogDir() {
+  if (!logDir) return; // 未初始化，跳过日志
   if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
+    try {
+      fs.mkdirSync(logDir, { recursive: true });
+    } catch (e) {
+      // 创建目录失败，静默忽略
+    }
   }
 }
 
@@ -21,19 +33,26 @@ function formatTime() {
 
 // 写入日志
 function log(level, message, data = null) {
-  ensureLogDir();
-  const timestamp = formatTime();
-  const dataStr = data ? ` | ${JSON.stringify(data)}` : '';
-  const line = `[${timestamp}] [${level}] ${message}${dataStr}\n`;
+  if (!logFile) return; // 未初始化，跳过日志
 
-  // 写入文件
-  fs.appendFileSync(logFile, line, 'utf8');
+  try {
+    ensureLogDir();
+    const timestamp = formatTime();
+    const dataStr = data ? ` | ${JSON.stringify(data)}` : '';
+    const line = `[${timestamp}] [${level}] ${message}${dataStr}\n`;
 
-  // 同时输出到控制台（开发时可见）
-  console.log(line.trim());
+    // 写入文件
+    fs.appendFileSync(logFile, line, 'utf8');
+
+    // 同时输出到控制台（开发时可见）
+    console.log(line.trim());
+  } catch (e) {
+    // 日志写入失败，静默忽略，避免影响应用运行
+  }
 }
 
 module.exports = {
+  init,
   log,
   info: (msg, data) => log('INFO', msg, data),
   warn: (msg, data) => log('WARN', msg, data),
