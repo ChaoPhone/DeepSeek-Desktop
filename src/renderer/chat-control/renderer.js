@@ -1,7 +1,11 @@
-const refreshBtn = document.getElementById('refresh-btn');
 const pinBtn = document.getElementById('pin-btn');
 const pinIconUnpinned = document.getElementById('pin-icon-unpinned');
 const pinIconPinned = document.getElementById('pin-icon-pinned');
+const navGroup = document.getElementById('nav-group');
+const menuBtn = document.getElementById('menu-btn');
+const navBack = document.getElementById('nav-back');
+const navForward = document.getElementById('nav-forward');
+const navRefresh = document.getElementById('nav-refresh');
 const minimizeBtn = document.getElementById('minimize-btn');
 const maximizeBtn = document.getElementById('maximize-btn');
 const maximizeIcon = document.getElementById('maximize-icon');
@@ -9,88 +13,112 @@ const restoreIcon = document.getElementById('restore-icon');
 const closeBtn = document.getElementById('close-btn');
 const titleEl = document.getElementById('title');
 const dragZone = document.getElementById('drag-zone');
+const loadingBar = document.getElementById('loading-bar');
+const errorOverlay = document.getElementById('error-overlay');
+const errorText = document.getElementById('error-text');
+const retryBtn = document.getElementById('retry-btn');
 
-// 监听网页title更新
+// === 标题 ===
 window.chatAPI.onTitleUpdate((title) => {
   if (titleEl && title) {
-    // 截断过长的title
-    titleEl.textContent = title.length > 30 ? title.slice(0, 30) + '...' : title;
+    titleEl.textContent = title;
   }
 });
 
-// 监听品牌色更新（刘海区域）
+// === 品牌色 ===
 window.chatAPI.onBrandColorUpdate((color) => {
   if (dragZone && color) {
-    // 使用品牌色作为刘海渐变背景
     dragZone.style.background = `linear-gradient(180deg, ${color}E6 0%, ${color}4D 100%)`;
   }
 });
 
-// 更新置顶图标状态
-function updatePinIcon(isPinned) {
-  pinIconUnpinned.style.display = isPinned ? 'none' : 'block';
-  pinIconPinned.style.display = isPinned ? 'block' : 'none';
-  pinBtn.classList.toggle('pinned', isPinned);
-  pinBtn.title = isPinned ? '取消置顶' : '置顶窗口';
+// === Pin ===
+function updatePinIcon(pinned) {
+  pinIconUnpinned.style.display = pinned ? 'none' : 'block';
+  pinIconPinned.style.display = pinned ? 'block' : 'none';
+  pinBtn.classList.toggle('pinned', pinned);
+  pinBtn.title = pinned ? '取消置顶' : '置顶窗口';
 }
 
-// 更新最大化图标状态
-function updateMaximizeIcon(isMaximized) {
-  maximizeIcon.style.display = isMaximized ? 'none' : 'block';
-  restoreIcon.style.display = isMaximized ? 'block' : 'none';
-  maximizeBtn.title = isMaximized ? '还原' : '最大化';
-}
-
-// 监听窗口最大化状态变化（双击标题栏等）
-window.chatAPI.onMaximizeUpdate((isMaximized) => {
-  updateMaximizeIcon(isMaximized);
-});
-
-// 置顶按钮
 pinBtn.addEventListener('click', async () => {
-  const isPinned = await window.chatAPI.togglePin();
-  updatePinIcon(isPinned);
+  updatePinIcon(await window.chatAPI.togglePin());
+});
+window.chatAPI.isPinned().then(updatePinIcon);
+
+// === 最大化 ===
+function updateMaximizeIcon(maximized) {
+  maximizeIcon.style.display = maximized ? 'none' : 'block';
+  restoreIcon.style.display = maximized ? 'block' : 'none';
+  maximizeBtn.title = maximized ? '还原' : '最大化';
+}
+
+window.chatAPI.onMaximizeUpdate(updateMaximizeIcon);
+window.chatAPI.isMaximized().then(updateMaximizeIcon);
+
+maximizeBtn.addEventListener('click', async () => {
+  updateMaximizeIcon(await window.chatAPI.toggleMaximize());
 });
 
-// 初始化置顶状态
-window.chatAPI.isPinned().then(pinned => {
-  updatePinIcon(pinned);
-});
+// === 导航小球：hover 展开/收起（仅全屏时） ===
+let expandTimer = null;
+let collapseTimer = null;
 
-// 刷新按钮
-refreshBtn.addEventListener('click', () => {
-  refreshBtn.classList.add('spinning');
+function expandNav() {
+  clearTimeout(collapseTimer);
+  clearTimeout(expandTimer);
+  expandTimer = setTimeout(() => {
+    navGroup.classList.add('expanded');
+  }, 80);
+}
+
+function collapseNav() {
+  clearTimeout(expandTimer);
+  collapseTimer = setTimeout(() => {
+    navGroup.classList.remove('expanded');
+  }, 150);
+}
+
+// 整个导航区域统一管理展开/收起
+navGroup.addEventListener('mouseenter', expandNav);
+navGroup.addEventListener('mouseleave', collapseNav);
+
+// 小球点击事件
+navBack.addEventListener('click', () => window.chatAPI.goBack());
+navForward.addEventListener('click', () => window.chatAPI.goForward());
+navRefresh.addEventListener('click', () => {
+  errorOverlay.style.display = 'none';
   window.chatAPI.reload();
 });
 
-refreshBtn.addEventListener('animationend', () => {
-  refreshBtn.classList.remove('spinning');
+// === 加载状态 ===
+window.chatAPI.onLoadingStart(() => {
+  errorOverlay.style.display = 'none';
+  loadingBar.classList.remove('done');
+  loadingBar.classList.add('active');
 });
 
-// 最小化按钮
-minimizeBtn.addEventListener('click', () => {
-  window.chatAPI.minimize();
+window.chatAPI.onLoadingEnd(() => {
+  loadingBar.classList.remove('active');
+  loadingBar.classList.add('done');
+  setTimeout(() => loadingBar.classList.remove('done'), 500);
 });
 
-// 最大化按钮
-maximizeBtn.addEventListener('click', async () => {
-  const isMaximized = await window.chatAPI.toggleMaximize();
-  updateMaximizeIcon(isMaximized);
+window.chatAPI.onLoadFailed((info) => {
+  loadingBar.classList.remove('active', 'done');
+  errorOverlay.style.display = 'flex';
+  const msg = info.errorDescription || '页面加载失败';
+  errorText.textContent = msg.length > 24 ? msg.slice(0, 24) + '...' : msg;
 });
 
-// 初始化最大化状态
-window.chatAPI.isMaximized().then(maximized => {
-  updateMaximizeIcon(maximized);
+retryBtn.addEventListener('click', () => {
+  errorOverlay.style.display = 'none';
+  window.chatAPI.reload();
 });
 
-// 关闭按钮
-closeBtn.addEventListener('click', () => {
-  window.close();
-});
+// === 最小化 / 关闭 ===
+minimizeBtn.addEventListener('click', () => window.chatAPI.minimize());
+closeBtn.addEventListener('click', () => window.close());
 
-// Ctrl+W 关闭
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'w') {
-    window.close();
-  }
+  if (e.ctrlKey && e.key === 'w') window.close();
 });

@@ -27,23 +27,25 @@
       </label>
     </div>
 
+    <div class="hint">外观设置实时生效，无需保存</div>
+
     <h2>代理设置</h2>
 
     <div class="field">
       <label>
         <input type="checkbox" id="proxy-enabled">
-        启用代理
+        启用代理（仅 ChatGPT/Gemini 生效）
       </label>
     </div>
 
     <div class="field">
       <label>代理地址</label>
-      <input type="text" id="proxy-url" placeholder="如: 127.0.0.1:7890 或 socks5://127.0.0.1:1080">
+      <input type="text" id="proxy-url" placeholder="如: 127.0.0.1:7897 或 socks5://127.0.0.1:1080">
     </div>
 
     <div class="actions">
       <button id="reset-btn">恢复默认</button>
-      <button id="save-all-btn">保存设置</button>
+      <button id="save-proxy-btn">应用代理</button>
     </div>
   </div>
   <script src="renderer.js"></script>

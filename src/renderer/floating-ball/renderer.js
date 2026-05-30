@@ -102,12 +102,13 @@ async function expandBalls() {
 
 // 收缩小球（纯 CSS 控制）
 function collapseBalls() {
+  clearTimeout(expandTimer); // 清除待执行的展开，防止竞态
   collapseTimer = setTimeout(() => {
     if (!isMouseOnAnyBall()) {
       ballContainer.classList.remove('expanded');
       isExpanded = false;
     }
-  }, 300);
+  }, 200);
 }
 
 // 检查鼠标是否在主球或小球上
@@ -121,7 +122,7 @@ function isMouseOnAnyBall() {
 ball.addEventListener('mouseenter', () => {
   if (dragging) return;
   clearTimeout(expandTimer);
-  expandTimer = setTimeout(expandBalls, 200);
+  expandTimer = setTimeout(expandBalls, 100);
 });
 
 ball.addEventListener('mouseleave', () => {

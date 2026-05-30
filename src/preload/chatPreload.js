@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('chatAPI', {
   toggleMaximize: () => ipcRenderer.invoke('window:toggle-maximize'),
   isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
   reload: () => ipcRenderer.invoke('window:reload'),
+  goBack: () => ipcRenderer.invoke('window:go-back'),
+  goForward: () => ipcRenderer.invoke('window:go-forward'),
+  showNavMenu: () => ipcRenderer.send('window:show-nav-menu'),
   onTitleUpdate: (callback) => {
     ipcRenderer.on('title:update', (event, title) => callback(title));
   },
@@ -26,5 +29,14 @@ contextBridge.exposeInMainWorld('chatAPI', {
   },
   onMaximizeUpdate: (callback) => {
     ipcRenderer.on('maximize:update', (event, isMaximized) => callback(isMaximized));
+  },
+  onLoadFailed: (callback) => {
+    ipcRenderer.on('load:failed', (event, info) => callback(info));
+  },
+  onLoadingStart: (callback) => {
+    ipcRenderer.on('loading:start', () => callback());
+  },
+  onLoadingEnd: (callback) => {
+    ipcRenderer.on('loading:end', () => callback());
   }
 });

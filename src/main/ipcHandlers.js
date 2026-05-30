@@ -1,4 +1,4 @@
-const { ipcMain, BrowserWindow, screen } = require('electron');
+const { ipcMain, BrowserWindow, screen, Menu, MenuItem } = require('electron');
 const { get, set } = require('./config');
 const { openNewChatWindow, getViewById, updateAllProxySettings } = require('./chatWindow');
 const { showContextMenu } = require('./contextMenu');
@@ -174,7 +174,7 @@ function registerIpcHandlers() {
   });
 
   ipcMain.on('window:zoom-request', (event, direction) => {
-    // Zoom操作在BrowserView上进行
+    // Zoom操作在BrowserView上进行（来自控制栏 preload）
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return;
     const view = getViewById(win.chatWindowId);
@@ -185,6 +185,19 @@ function registerIpcHandlers() {
       ? Math.min(3.0, currentFactor + step)
       : Math.max(0.5, currentFactor - step);
     view.webContents.setZoomFactor(newFactor);
+    set('zoomLevel', newFactor);
+  });
+
+  // BrowserView 内部的 Ctrl+滚轮缩放（来自 viewPreload.js）
+  ipcMain.on('view:zoom-request', (event, direction) => {
+    // event.sender 就是 BrowserView 的 webContents
+    const wc = event.sender;
+    const currentFactor = wc.getZoomFactor();
+    const step = 0.1;
+    const newFactor = direction === 'in'
+      ? Math.min(3.0, currentFactor + step)
+      : Math.max(0.5, currentFactor - step);
+    wc.setZoomFactor(newFactor);
     set('zoomLevel', newFactor);
   });
 
@@ -244,6 +257,68 @@ function registerIpcHandlers() {
       view.webContents.reload();
     }
     return true;
+  });
+
+  // 后退
+  ipcMain.handle('window:go-back', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    const view = getViewById(win.chatWindowId);
+    if (view && view.webContents.canGoBack()) {
+      view.webContents.goBack();
+      return true;
+    }
+    return false;
+  });
+
+  // 前进
+  ipcMain.handle('window:go-forward', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    const view = getViewById(win.chatWindowId);
+    if (view && view.webContents.canGoForward()) {
+      view.webContents.goForward();
+      return true;
+    }
+    return false;
+  });
+
+  // 查询导航状态
+  ipcMain.handle('window:nav-state', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return { canGoBack: false, canGoForward: false };
+    const view = getViewById(win.chatWindowId);
+    if (!view) return { canGoBack: false, canGoForward: false };
+    return {
+      canGoBack: view.webContents.canGoBack(),
+      canGoForward: view.webContents.canGoForward()
+    };
+  });
+
+  // 显示原生导航菜单（后退/前进/刷新）
+  ipcMain.on('window:show-nav-menu', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return;
+    const view = getViewById(win.chatWindowId);
+
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: '后退',
+      enabled: view && view.webContents.canGoBack(),
+      click: () => { if (view && !view.webContents.isDestroyed()) view.webContents.goBack(); }
+    }));
+    menu.append(new MenuItem({
+      label: '前进',
+      enabled: view && view.webContents.canGoForward(),
+      click: () => { if (view && !view.webContents.isDestroyed()) view.webContents.goForward(); }
+    }));
+    menu.append(new MenuItem({ type: 'separator' }));
+    menu.append(new MenuItem({
+      label: '刷新',
+      click: () => { if (view && !view.webContents.isDestroyed()) view.webContents.reload(); }
+    }));
+
+    menu.popup({ window: win });
   });
 
   // Proxy 设置相关

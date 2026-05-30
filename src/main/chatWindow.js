@@ -126,6 +126,7 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   // 创建BrowserView加载实际网页内容
   const view = new BrowserView({
     webPreferences: {
+      preload: path.join(__dirname, '../preload/viewPreload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
@@ -134,8 +135,8 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   win.setBrowserView(view);
   views.set(id, view);
 
-  // 应用代理设置（如果已配置）
-  applyProxySettings(view);
+  // 应用代理设置（如果已配置，国内服务默认跳过）
+  applyProxySettings(view, currentAI);
 
   // BrowserView位于拖动区域下方
   const [width, height] = win.getSize();
@@ -143,10 +144,60 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
   view.setAutoResize({ width: true, height: true });
   view.webContents.loadURL(aiConfig.url);
 
+  // 恢复会话时还原缩放比例
+  if (savedBounds?.zoomFactor && savedBounds.zoomFactor !== 1.0) {
+    view.webContents.setZoomFactor(savedBounds.zoomFactor);
+  }
+
   // 监听网页title变化，同步到控制栏
   view.webContents.on('page-title-updated', (event, title) => {
     if (win && !win.isDestroyed()) {
       win.webContents.send('title:update', title);
+    }
+  });
+
+  // 加载状态通知（用于控制栏显示加载动画）
+  view.webContents.on('did-start-loading', () => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('loading:start');
+    }
+  });
+  view.webContents.on('did-stop-loading', () => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('loading:end');
+    }
+  });
+
+  // 监听导航状态变化，同步到控制栏（前进/后退按钮可用性）
+  view.webContents.on('did-navigate', () => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('nav-state:update', {
+        canGoBack: view.webContents.canGoBack(),
+        canGoForward: view.webContents.canGoForward()
+      });
+    }
+  });
+  view.webContents.on('did-navigate-in-page', () => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('nav-state:update', {
+        canGoBack: view.webContents.canGoBack(),
+        canGoForward: view.webContents.canGoForward()
+      });
+    }
+  });
+
+  // 监听加载失败，通知控制栏显示错误提示
+  view.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (!isMainFrame) return; // 只处理主框架加载失败
+    // -3 是用户主动中断，不需要提示
+    if (errorCode === -3) return;
+    log('WARN', '页面加载失败', { errorCode, errorDescription, validatedURL });
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('load:failed', {
+        errorCode,
+        errorDescription,
+        url: validatedURL
+      });
     }
   });
 
@@ -163,6 +214,12 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
     // 发送品牌色给控制栏渲染器
     if (aiConfig.brandColor) {
       win.webContents.send('brand-color:update', aiConfig.brandColor);
+    }
+    // 聊天窗口显示后，立即重新断言悬浮球置顶状态
+    const { getBallWindow } = require('./floatingBall');
+    const ballWin = getBallWindow();
+    if (ballWin && !ballWin.isDestroyed() && get('ballAlwaysOnTop') !== false) {
+      ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
     }
   });
 
@@ -227,12 +284,25 @@ function saveAllBounds() {
   return bounds;
 }
 
+// 不需要代理的国内 AI 服务
+const NO_PROXY_AI = ['deepseek', 'glm'];
+
 // 应用代理设置到 BrowserView
-function applyProxySettings(view) {
+// aiKey: 当前窗口对应的 AI 类型，国内服务默认跳过代理
+function applyProxySettings(view, aiKey) {
   if (!view) return;
 
   const proxyEnabled = get('proxyEnabled');
   const proxyUrl = get('proxyUrl');
+
+  // 国内服务（DeepSeek、GLM）默认不走代理
+  if (aiKey && NO_PROXY_AI.includes(aiKey)) {
+    view.webContents.session.setProxy({ proxyRules: '' })
+      .then(() => {
+        log('INFO', '国内服务跳过代理', { aiKey });
+      });
+    return;
+  }
 
   if (proxyEnabled && proxyUrl) {
     // 解析代理 URL（支持 http/https/socks5）
@@ -260,9 +330,10 @@ function applyProxySettings(view) {
 
 // 更新所有聊天窗口的代理设置
 function updateAllProxySettings() {
-  views.forEach((view) => {
+  windows.forEach((win) => {
+    const view = views.get(win.chatWindowId);
     if (view && !view.webContents.isDestroyed()) {
-      applyProxySettings(view);
+      applyProxySettings(view, win.aiKey);
     }
   });
 }

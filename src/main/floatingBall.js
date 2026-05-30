@@ -37,7 +37,13 @@ function refreshBallWindow() {
 function getBallCenterPosition() {
   const pos = get('ballPosition');
   if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
-    return { x: 1200, y: 300 };
+    // 首次启动：智能定位到主显示器右侧居中
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const wa = primaryDisplay.workArea;
+    return {
+      x: Math.round(wa.x + wa.width * 0.85),
+      y: Math.round(wa.y + wa.height / 2)
+    };
   }
   return { x: Math.round(pos.x), y: Math.round(pos.y) };
 }
@@ -168,7 +174,11 @@ function createFloatingBall() {
   }, 3000);
 
   // 鼠标穿透检测：检测主球和小球圆形范围
-  mouseCheckTimer = setInterval(() => {
+  // 智能轮询：远离时 200ms，靠近时 50ms，降低 CPU 占用
+  let mouseNearBall = false;
+  const NEAR_DISTANCE = 200; // 靠近判定距离（px）
+
+  function checkMousePosition() {
     if (!ballWin || ballWin.isDestroyed()) return;
 
     const cursorPos = screen.getCursorScreenPoint();
@@ -180,10 +190,25 @@ function createFloatingBall() {
 
     const dx = cursorPos.x - centerX;
     const dy = cursorPos.y - centerY;
+    const distSq = dx * dx + dy * dy;
+
+    // 切换轮询频率
+    const nowNear = distSq < NEAR_DISTANCE * NEAR_DISTANCE;
+    if (nowNear !== mouseNearBall) {
+      mouseNearBall = nowNear;
+      clearInterval(mouseCheckTimer);
+      mouseCheckTimer = setInterval(checkMousePosition, nowNear ? 50 : 200);
+    }
+
+    // 远离时只确保穿透，不做详细碰撞检测
+    if (!nowNear) {
+      ballWin.setIgnoreMouseEvents(true, { forward: true });
+      return;
+    }
 
     // 主球半径
     const mainRadius = (ballSize + HOVER_PADDING) / 2;
-    let shouldCapture = dx * dx + dy * dy <= mainRadius * mainRadius;
+    let shouldCapture = distSq <= mainRadius * mainRadius;
 
     // 小球半径和位置（根据屏幕位置动态选择方向）
     const miniRadius = ballSize * 0.65 / 2;
@@ -219,7 +244,9 @@ function createFloatingBall() {
     });
 
     ballWin.setIgnoreMouseEvents(!shouldCapture, { forward: true });
-  }, 50);
+  }
+
+  mouseCheckTimer = setInterval(checkMousePosition, 200);
 
   return ballWin;
 }

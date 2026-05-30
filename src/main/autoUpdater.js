@@ -59,7 +59,7 @@ function setupAutoUpdater() {
 
     dialog.showMessageBox(parentWin, {
       type: 'info',
-      title: 'DeepSeek Desktop 有更新啦 (◕‿◕)',
+      title: 'DeepSeek Desktop 有更新啦！ ヾ(≧▽≦*)o',
       message: `发现新版本 v${info.version}`,
       detail: updateNotes || '有新功能等你体验哦~ 是否立即下载？',
       buttons: ['马上下载 ⬇️', '稍后提醒'],

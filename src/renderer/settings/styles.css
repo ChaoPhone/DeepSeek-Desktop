@@ -36,6 +36,13 @@ h2 {
   color: #a6adc8;
 }
 
+.hint {
+  font-size: 11px;
+  color: #6c7086;
+  text-align: center;
+  margin-top: -8px;
+}
+
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
@@ -59,6 +66,7 @@ input[type="range"]::-webkit-slider-thumb {
 .actions {
   display: flex;
   justify-content: center;
+  gap: 12px;
   padding-top: 8px;
 }
 
@@ -80,7 +88,7 @@ input[type="range"]::-webkit-slider-thumb {
 #save-proxy-btn {
   padding: 8px 24px;
   border-radius: 6px;
-  border: 1px solid #45475a;
+  border: 1px solid #3A6AD4;
   background: #3A6AD4;
   color: #ffffff;
   font-size: 13px;
@@ -120,11 +128,4 @@ input[type="checkbox"] {
 
 .field label input[type="checkbox"] {
   margin-right: 8px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding-top: 8px;
 }

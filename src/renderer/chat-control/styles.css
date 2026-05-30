@@ -26,17 +26,51 @@ html, body {
   justify-content: center;
 }
 
+/* 加载进度条 */
+#loading-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, #3A6AD4, #6CB4FF);
+  border-radius: 0 2px 0 0;
+  transition: width 0.3s ease;
+  opacity: 0;
+}
+
+#loading-bar.active {
+  opacity: 1;
+  animation: loading-progress 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-progress {
+  0% { width: 0; }
+  50% { width: 70%; }
+  80% { width: 90%; }
+  100% { width: 95%; }
+}
+
+#loading-bar.done {
+  opacity: 1;
+  width: 100%;
+  transition: width 0.2s ease, opacity 0.3s ease 0.2s;
+}
+
 #title {
   font-family: 'Georgia', 'Times New Roman', serif;
   font-size: 14px;
   color: rgba(255,255,255,0.9);
   letter-spacing: 1px;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 65%;
 }
 
-#pin-btn, #refresh-btn, #minimize-btn, #maximize-btn, #close-btn {
-  position: fixed;
-  top: 6px;
+/* === 按钮通用样式 === */
+#pin-btn, #menu-btn, .nav-ball, #minimize-btn, #maximize-btn, #close-btn {
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -44,69 +78,132 @@ html, body {
   color: #fff;
   border: none;
   font-size: 14px;
-  line-height: 24px;
-  text-align: center;
   cursor: pointer;
   transition: background 0.15s;
   -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-#refresh-btn {
+#pin-btn, #minimize-btn, #maximize-btn, #close-btn {
+  position: fixed;
+  top: 6px;
+}
+
+/* === Pin === */
+#pin-btn { left: 8px; }
+#pin-btn:hover { background: rgba(255,255,255,0.3); }
+#pin-btn.pinned { background: rgba(74,144,217,0.7); }
+#pin-btn.pinned:hover { background: rgba(74,144,217,0.9); }
+
+/* === 导航组：汉堡菜单 + 展开的小球 === */
+#nav-group {
+  position: fixed;
+  top: 6px;
   left: 38px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  -webkit-app-region: no-drag;
+  /* 容纳展开后的内容，鼠标可以移动到小球上 */
+  overflow: visible;
 }
 
-#refresh-btn:hover {
+#menu-btn {
+  position: static;
+}
+
+#menu-btn:hover {
   background: rgba(255,255,255,0.3);
 }
 
-#refresh-btn.spinning svg {
-  animation: spin 0.6s linear;
+/* 小球容器：默认宽度 0，展开时有宽度 */
+#nav-balls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.15s ease;
+  margin-left: 0;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* 展开状态 */
+#nav-group.expanded #nav-balls {
+  max-width: 100px; /* 3个小球 * 24px + 2个gap * 4px = 80px，留余量 */
+  opacity: 1;
+  margin-left: 4px;
 }
 
-#pin-btn {
-  left: 8px;
+/* 小球样式 */
+.nav-ball {
+  transform: scale(0.6);
+  background: rgba(58, 106, 212, 0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.15s;
 }
 
-#pin-btn:hover {
+#nav-group.expanded .nav-ball {
+  transform: scale(1);
+}
+
+.nav-ball:hover {
+  background: rgba(58, 106, 212, 0.85);
+  border-color: rgba(255,255,255,0.25);
+}
+
+.nav-ball:active {
+  transform: scale(0.9);
+  background: rgba(58, 106, 212, 1);
+}
+
+/* 错误提示 */
+#error-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: rgba(180, 40, 40, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+}
+
+#error-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+}
+
+#retry-btn {
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#retry-btn:hover {
   background: rgba(255,255,255,0.3);
 }
 
-#pin-btn.pinned {
-  background: rgba(74,144,217,0.7);
-}
+/* === 窗口按钮 === */
+#minimize-btn { right: 72px; }
+#minimize-btn:hover { background: rgba(255,255,255,0.3); }
 
-#pin-btn.pinned:hover {
-  background: rgba(74,144,217,0.9);
-}
+#maximize-btn { right: 40px; }
+#maximize-btn:hover { background: rgba(255,255,255,0.3); }
 
-#minimize-btn {
-  right: 72px;
-}
-
-#minimize-btn:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-#maximize-btn {
-  right: 40px;
-}
-
-#maximize-btn:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-#close-btn {
-  right: 8px;
-}
-
-#close-btn:hover {
-  background: rgba(220,50,50,0.7);
-}
+#close-btn { right: 8px; }
+#close-btn:hover { background: rgba(220,50,50,0.7); }

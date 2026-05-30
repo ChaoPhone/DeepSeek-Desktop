@@ -46,11 +46,11 @@ const schema = {
   },
   proxyEnabled: {
     type: 'boolean',
-    default: false
+    default: true
   },
   proxyUrl: {
     type: 'string',
-    default: ''
+    default: '127.0.0.1:7897'
   }
 };
 

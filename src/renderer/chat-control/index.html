@@ -7,42 +7,62 @@
 </head>
 <body>
   <div id="drag-zone">
+    <div id="loading-bar"></div>
     <span id="title">Loading...</span>
   </div>
-  <button id="refresh-btn" title="刷新页面">
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-      <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-    </svg>
-  </button>
   <button id="pin-btn" title="Pin">
     <svg id="pin-icon-unpinned" viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
-      <!-- 未置顶：斜放的图钉 -->
       <circle cx="5" cy="11" r="2.5"/>
       <line x1="5" y1="11" x2="12" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
     <svg id="pin-icon-pinned" viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="display:none">
-      <!-- 已置顶：直立的图钉 -->
       <circle cx="8" cy="4" r="2.5"/>
       <line x1="8" y1="4" x2="8" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
   </button>
-  <button id="minimize-btn" title="Minimize">
+  <div id="nav-group">
+    <button id="menu-btn" title="菜单">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+    </button>
+    <div id="nav-balls">
+      <button class="nav-ball" id="nav-back" title="后退">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+      </button>
+      <button class="nav-ball" id="nav-forward" title="前进">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+          <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+        </svg>
+      </button>
+      <button class="nav-ball" id="nav-refresh" title="刷新">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div id="error-overlay" style="display:none">
+    <span id="error-text">页面加载失败</span>
+    <button id="retry-btn">重试</button>
+  </div>
+  <button id="minimize-btn" title="最小化">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
       <path d="M6 11h12v2H6z"/>
     </svg>
   </button>
   <button id="maximize-btn" title="最大化">
-    <!-- 最大化图标：空心方框 -->
     <svg id="maximize-icon" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.2">
       <rect x="1.5" y="1.5" width="9" height="9" rx="0.5"/>
     </svg>
-    <!-- 还原图标：两个重叠的空心方框（Windows 风格） -->
     <svg id="restore-icon" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.2" style="display:none">
       <rect x="1.5" y="4.5" width="6" height="6" rx="0.5"/>
       <rect x="4.5" y="1.5" width="6" height="6" rx="0.5"/>
     </svg>
   </button>
-  <button id="close-btn" title="Close (Ctrl+W)">✕</button>
+  <button id="close-btn" title="关闭">✕</button>
   <script src="renderer.js"></script>
 </body>
 </html>

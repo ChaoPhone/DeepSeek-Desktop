@@ -33,13 +33,26 @@ if (!gotSingleLock) {
     const { initAutoLaunch } = require('./autoLaunch');
     initAutoLaunch();
 
-    const { createFloatingBall } = require('./floatingBall');
+    const { createFloatingBall, getBallWindow } = require('./floatingBall');
     createFloatingBall();
     log('INFO', 'Ball window created');
 
     const { registerIpcHandlers } = require('./ipcHandlers');
     registerIpcHandlers();
     log('INFO', 'IPC registered');
+
+    // 任何新窗口创建后，立即重新断言悬浮球置顶状态
+    // 解决新窗口抢占悬浮球置顶层级的问题
+    app.on('browser-window-created', (_event, newWin) => {
+      const ballWin = getBallWindow();
+      if (!ballWin || ballWin.isDestroyed()) return;
+      // 跳过悬浮球自身
+      if (newWin === ballWin) return;
+      const configOnTop = get('ballAlwaysOnTop') !== false;
+      if (configOnTop && ballWin && !ballWin.isDestroyed()) {
+        ballWin.setAlwaysOnTop(true, 'screen-saver', 1);
+      }
+    });
 
     // 自动更新（仅在生产环境启用）
     if (app.isPackaged) {
@@ -55,7 +68,7 @@ if (!gotSingleLock) {
       for (const savedWin of lastWindows) {
         try {
           // 恢复时传递 aiKey，确保 GLM 使用正确的默认宽度
-          const bounds = { x: savedWin.x, y: savedWin.y, width: savedWin.width, height: savedWin.height };
+          const bounds = { x: savedWin.x, y: savedWin.y, width: savedWin.width, height: savedWin.height, zoomFactor: savedWin.zoomFactor };
           openNewChatWindow(bounds, savedWin.aiKey);
         } catch (e) {}
       }

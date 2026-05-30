@@ -6,9 +6,15 @@ const resetBtn = document.getElementById('reset-btn');
 const alwaysOnTopCheckbox = document.getElementById('always-on-top');
 const proxyEnabledCheckbox = document.getElementById('proxy-enabled');
 const proxyUrlInput = document.getElementById('proxy-url');
-const saveAllBtn = document.getElementById('save-all-btn');
+const saveProxyBtn = document.getElementById('save-proxy-btn');
 
-const DEFAULTS = { ballSize: 40, ballOpacity: 0.9 };
+const DEFAULTS = {
+  ballSize: 40,
+  ballOpacity: 0.9,
+  ballAlwaysOnTop: true,
+  proxyEnabled: true,
+  proxyUrl: '127.0.0.1:7897'
+};
 
 async function init() {
   // 加载外观设置
@@ -30,13 +36,11 @@ async function init() {
   }
 }
 
-// input 事件：实时更新显示数值和悬浮球大小，但不触发缩放动画
+// 外观设置：实时生效
 sizeSlider.addEventListener('input', () => {
   sizeVal.textContent = sizeSlider.value;
   window.deepseekAPI.setConfigSilent('ballSize', Number(sizeSlider.value));
 });
-
-// change 事件：鼠标释放后触发缩放动画
 sizeSlider.addEventListener('change', () => {
   window.deepseekAPI.setConfig('ballSize', Number(sizeSlider.value));
 });
@@ -45,35 +49,47 @@ opacitySlider.addEventListener('input', () => {
   opacityVal.textContent = opacitySlider.value;
   window.deepseekAPI.setConfigSilent('ballOpacity', parseFloat(opacitySlider.value));
 });
-
 opacitySlider.addEventListener('change', () => {
   window.deepseekAPI.setConfig('ballOpacity', parseFloat(opacitySlider.value));
 });
 
-// 置顶选项实时更新
 alwaysOnTopCheckbox.addEventListener('change', () => {
   window.deepseekAPI.setConfig('ballAlwaysOnTop', alwaysOnTopCheckbox.checked);
 });
 
-// 保存所有设置
-saveAllBtn.addEventListener('click', async () => {
-  // 保存代理设置
+// 代理设置：点击"应用代理"后生效
+saveProxyBtn.addEventListener('click', async () => {
   if (window.deepseekAPI.setProxy) {
     await window.deepseekAPI.setProxy({
       enabled: proxyEnabledCheckbox.checked,
       url: proxyUrlInput.value.trim()
     });
+    saveProxyBtn.textContent = '已应用 ✓';
+    setTimeout(() => { saveProxyBtn.textContent = '应用代理'; }, 1500);
   }
 });
 
+// 恢复默认：重置所有设置
 resetBtn.addEventListener('click', async () => {
+  // 外观
   await window.deepseekAPI.setConfig('ballSize', DEFAULTS.ballSize);
   await window.deepseekAPI.setConfig('ballOpacity', DEFAULTS.ballOpacity);
-
+  await window.deepseekAPI.setConfig('ballAlwaysOnTop', DEFAULTS.ballAlwaysOnTop);
   sizeSlider.value = DEFAULTS.ballSize;
   sizeVal.textContent = DEFAULTS.ballSize;
   opacitySlider.value = DEFAULTS.ballOpacity;
   opacityVal.textContent = DEFAULTS.ballOpacity;
+  alwaysOnTopCheckbox.checked = DEFAULTS.ballAlwaysOnTop;
+
+  // 代理
+  proxyEnabledCheckbox.checked = DEFAULTS.proxyEnabled;
+  proxyUrlInput.value = DEFAULTS.proxyUrl;
+  if (window.deepseekAPI.setProxy) {
+    await window.deepseekAPI.setProxy({
+      enabled: DEFAULTS.proxyEnabled,
+      url: DEFAULTS.proxyUrl
+    });
+  }
 });
 
 init();
