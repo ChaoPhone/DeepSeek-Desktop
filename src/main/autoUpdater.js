@@ -16,9 +16,9 @@ const MIRRORS = [
 // 原始 GitHub URL
 const GITHUB_REPO = 'ChaoPhone/DeepSeek-Desktop';
 
-// 构建镜像 URL
-function buildMirrorUrl(baseUrl, path) {
-  return `${baseUrl}/https://github.com/${GITHUB_REPO}/releases/download/${path}`;
+// 构建镜像 URL（latest.yml 路径）
+function buildMirrorUrl(baseUrl) {
+  return `${baseUrl}/https://github.com/${GITHUB_REPO}/releases/latest/download/latest.yml`;
 }
 
 function setupAutoUpdater() {
@@ -158,6 +158,11 @@ async function tryMirrorCheck(currentVersion, mirrorIndex) {
   if (mirrorIndex >= MIRRORS.length) {
     log('WARN', 'AutoUpdater 所有镜像失败尝试 GitHub 直连');
     // 最后尝试 GitHub 直连
+    autoUpdater.setFeedURL({
+      provider: 'generic',
+      url: `https://github.com/${GITHUB_REPO}/releases/latest/download/latest.yml`,
+      channel: 'latest'
+    });
     autoUpdater.checkForUpdates().catch(err => {
       log('ERROR', 'AutoUpdater 检查更新失败', { message: err.message || err });
     });
@@ -165,9 +170,9 @@ async function tryMirrorCheck(currentVersion, mirrorIndex) {
   }
 
   const mirror = MIRRORS[mirrorIndex];
-  const latestFeedUrl = buildMirrorUrl(mirror, 'latest/download/latest.yml');
+  const latestFeedUrl = buildMirrorUrl(mirror);
 
-  log('DEBUG', 'AutoUpdater 尝试镜像', { mirror });
+  log('DEBUG', 'AutoUpdater 尝试镜像', { mirror, url: latestFeedUrl });
 
   try {
     // 设置自定义 feed URL 使用镜像
