@@ -1,13 +1,13 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Commands
 
 ```bash
 npm start              # 开发运行
-npm run build          # 构建（nsis Setup + 便携版）
-npm run build:setup    # 仅构建 Setup 安装包
+npm run build:setup    # 构建 Setup 安装包
+npm run build:portable # 构建便携版 exe
 ```
 
 ## Architecture
@@ -31,7 +31,7 @@ Electron 桌面应用，悬浮球快速访问 AI 网站。
 | 目录 | 职责 |
 |------|------|
 | `src/renderer/floating-ball/` | 悬浮球 UI：主球 + hover 展开的副球 |
-| `src/renderer/chat-control/` | 聊天窗口控制栏：拖拽区、Pin、汉堡菜单（hover展开导航小球）、最小化/最大化/关闭、加载进度条、错误提示 |
+| `src/renderer/chat-control/` | 聊天窗口控制栏：拖拽区、置顶/最小化/最大化/关闭按钮 |
 | `src/renderer/settings/` | 外观设置页面：大小、透明度、主题色 |
 
 ### Preload
@@ -39,8 +39,7 @@ Electron 桌面应用，悬浮球快速访问 AI 网站。
 | 文件 | 职责 |
 |------|------|
 | `src/preload/ballPreload.js` | 悬浮球 API：图标加载、窗口操作、配置读写、展开/收缩窗口 |
-| `src/preload/chatPreload.js` | 聊天窗口 API：缩放、置顶、最小化、最大化、导航菜单 |
-| `src/preload/viewPreload.js` | BrowserView 注入：Ctrl+滚轮缩放网页内容 |
+| `src/preload/chatPreload.js` | 聊天窗口 API：缩放、置顶、最小化、最大化 |
 
 ### 关键技术点
 
@@ -55,23 +54,8 @@ Electron 桌面应用，悬浮球快速访问 AI 网站。
 - 置顶使用 `setAlwaysOnTop(true, 'screen-saver')`
 
 **配置 schema（config.js）：**
-- ballSize（20-80，默认40）、ballOpacity（0.3-1.0，默认0.9）、ballColor、ballPosition、ballAlwaysOnTop（默认true）
-- currentAI（deepseek/gpt/gemini/glm）、proxyEnabled（默认true）、proxyUrl（默认127.0.0.1:7897）
-- zoomLevel、lastWindows、autoStart
+- ballSize（16-60）、ballOpacity（0.3-1.0）、ballColor、ballPosition、currentAI（deepseek/gpt/gemini/glm）
 
 ## AI 图标
 
 位于 `assets/ai_figure/`：ds.png、gpt.png、gemini.png、glm.png（均已缩放为 512x512）
-
-## 交互测试流程
-
-修改 UI/交互相关代码后，需执行以下流程让用户进行人工测试：
-
-1. **关闭已运行的进程**：`taskkill /F /IM electron.exe 2>/dev/null`
-2. **启动开发模式**：`npm start`（用 `run_in_background` 后台启动）
-3. **等待启动完成**：`sleep 4` 后检查 `tasklist | grep electron` 确认进程存在
-4. **通知用户测试**：说明本次改动点，让用户操作验证
-5. **根据反馈迭代**：用户报告问题后修改代码，重复 1-4 步骤
-6. **构建 + 提交**：用户确认无问题后 `npm run build` 构建，然后 git commit
-
-**注意**：每次修改代码后必须重启应用才能生效，不能热更新。
