@@ -8,9 +8,9 @@ let updateCheckTimer = null;
 
 // GitHub 镜像列表（国内可用）
 const MIRRORS = [
-  'https://mirror.ghproxy.com',
-  'https://ghproxy.com',
-  'https://hub.gitmirror.com'
+  'https://ghfast.top',
+  'https://gh-proxy.com',
+  'https://mirror.ghproxy.com'
 ];
 
 // 原始 GitHub URL
