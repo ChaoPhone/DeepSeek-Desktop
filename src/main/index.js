@@ -86,6 +86,10 @@ if (!gotSingleLock) {
     if (bounds.length > 0) set('lastWindows', bounds);
     closeAllChatWindows();
 
+    // 清理系统托盘图标，防止退出后残留
+    const { destroyTray } = require('./contextMenu');
+    destroyTray();
+
     // 清理自动更新定时器
     if (app.isPackaged) {
       const { cleanupAutoUpdater } = require('./autoUpdater');

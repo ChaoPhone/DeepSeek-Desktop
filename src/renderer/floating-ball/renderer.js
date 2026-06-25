@@ -45,6 +45,7 @@ let hasMoved = false;
 let expandTimer = null;
 let collapseTimer = null;
 let isExpanded = false;
+let lastMousePos = null;
 
 // 监听主进程返回的窗口初始位置
 window.deepseekAPI.onWindowStartPosition((pos) => {
@@ -100,23 +101,58 @@ async function expandBalls() {
   }
 }
 
-// 收缩小球（纯 CSS 控制）
+// 收缩小球（带宽恕走廊检测）
 function collapseBalls() {
   clearTimeout(expandTimer); // 清除待执行的展开，防止竞态
   collapseTimer = setTimeout(() => {
-    if (!isMouseOnAnyBall()) {
+    if (!isMouseInSafeZone()) {
       ballContainer.classList.remove('expanded');
       isExpanded = false;
     }
-  }, 200);
+  }, 400); // 增加到 400ms，给用户更多时间移到小球
 }
 
-// 检查鼠标是否在主球或小球上
-function isMouseOnAnyBall() {
+// 检查鼠标是否在安全区域内（主球、小球、或之间的走廊）
+function isMouseInSafeZone() {
   const hoveredBall = ball.matches(':hover');
   const hoveredMini = Array.from(miniBalls).some(mb => mb.matches(':hover'));
-  return hoveredBall || hoveredMini;
+  if (hoveredBall || hoveredMini) return true;
+
+  // 走廊检测：鼠标在主球和任意小球之间的矩形区域内
+  if (!isExpanded || !lastMousePos) return false;
+  return isInCorridor(lastMousePos.x, lastMousePos.y);
 }
+
+function isInCorridor(mx, my) {
+  const ballRect = ball.getBoundingClientRect();
+  const mainCx = ballRect.left + ballRect.width / 2;
+  const mainCy = ballRect.top + ballRect.height / 2;
+  const mainR = ballRect.width / 2;
+
+  for (const mb of miniBalls) {
+    const mbRect = mb.getBoundingClientRect();
+    if (mbRect.width === 0) continue; // 未展开的小球
+    const mbCx = mbRect.left + mbRect.width / 2;
+    const mbCy = mbRect.top + mbRect.height / 2;
+    const mbR = mbRect.width / 2;
+
+    // 检查点是否在"主球→小球"的走廊矩形内（带扩展边距）
+    const corridorPadding = Math.max(mainR, mbR) * 0.6;
+    const minX = Math.min(mainCx - mainR, mbCx - mbR) - corridorPadding;
+    const maxX = Math.max(mainCx + mainR, mbCx + mbR) + corridorPadding;
+    const minY = Math.min(mainCy - mainR, mbCy - mbR) - corridorPadding;
+    const maxY = Math.max(mainCy + mainR, mbCy + mbR) + corridorPadding;
+
+    if (mx >= minX && mx <= maxX && my >= minY && my <= maxY) {
+      return true;
+    }
+  }
+  return false;
+}
+
+document.addEventListener('mousemove', (e) => {
+  lastMousePos = { x: e.clientX, y: e.clientY };
+});
 
 // hover 展开逻辑：主球
 ball.addEventListener('mouseenter', () => {

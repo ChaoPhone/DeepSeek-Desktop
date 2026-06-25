@@ -134,7 +134,7 @@ html, body {
 
 /* 展开状态 */
 #nav-group.expanded #nav-balls {
-  max-width: 100px; /* 3个小球 * 24px + 2个gap * 4px = 80px，留余量 */
+  max-width: 130px; /* 4个小球 * 24px + 3个gap * 4px = 108px，留余量 */
   opacity: 1;
   margin-left: 4px;
 }

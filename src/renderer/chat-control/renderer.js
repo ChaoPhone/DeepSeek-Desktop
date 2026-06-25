@@ -117,8 +117,14 @@ retryBtn.addEventListener('click', () => {
 
 // === 最小化 / 关闭 ===
 minimizeBtn.addEventListener('click', () => window.chatAPI.minimize());
-closeBtn.addEventListener('click', () => window.close());
+closeBtn.addEventListener('click', () => window.chatAPI.close());
 
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'w') window.close();
+  if (e.ctrlKey && e.key === 'w') window.chatAPI.close();
 });
+
+// === Web Settings（第4个导航小球）===
+const webSettingsBtn = document.getElementById('nav-web-settings');
+if (webSettingsBtn) {
+  webSettingsBtn.addEventListener('click', () => window.chatAPI.showWebSettings());
+}

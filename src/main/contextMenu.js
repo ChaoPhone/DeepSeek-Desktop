@@ -1,9 +1,24 @@
-const { Menu, app, BrowserWindow } = require('electron');
+const { Menu, Tray, app, BrowserWindow } = require('electron');
 const path = require('path');
 const { get, set } = require('./config');
 const { setAutoLaunch } = require('./autoLaunch');
 const { AI_SITES } = require('./aiConfig');
-const { refreshBallWindow, getBallWindow } = require('./floatingBall');
+const {
+  refreshBallWindow,
+  getBallWindow,
+  showFloatingBall,
+  hideFloatingBall,
+  toggleFloatingBallDevTools
+} = require('./floatingBall');
+
+let tray = null;
+
+function destroyTray() {
+  if (tray && !tray.isDestroyed()) {
+    tray.destroy();
+    tray = null;
+  }
+}
 
 function showContextMenu(ballWin) {
   const config = get();
@@ -41,6 +56,26 @@ function showContextMenu(ballWin) {
         openSettingsWindow();
       }
     },
+    {
+      label: '隐藏悬浮球',
+      click: () => {
+        ensureTray();
+        hideFloatingBall();
+      }
+    },
+    {
+      label: '显示悬浮球控制台',
+      click: () => {
+        toggleFloatingBallDevTools();
+      }
+    },
+    { type: 'separator' },
+    {
+      label: '关闭菜单',
+      click: () => {
+        refreshBallWindow();
+      }
+    },
     { type: 'separator' },
     {
       label: '退出',
@@ -60,6 +95,51 @@ function showContextMenu(ballWin) {
       refreshBallWindow();
     }
   });
+}
+
+function ensureTray() {
+  if (tray && !tray.isDestroyed()) return tray;
+
+  const trayIcon = path.join(__dirname, '../../assets/app.ico');
+  tray = new Tray(trayIcon);
+  tray.setToolTip('DeepSeek Desktop');
+  tray.setContextMenu(buildTrayMenu());
+  tray.on('click', () => {
+    showFloatingBall();
+  });
+  return tray;
+}
+
+function buildTrayMenu() {
+  return Menu.buildFromTemplate([
+    {
+      label: '显示悬浮球',
+      click: () => {
+        showFloatingBall();
+      }
+    },
+    {
+      label: '自定义设置...',
+      click: () => {
+        openSettingsWindow();
+        showFloatingBall();
+      }
+    },
+    {
+      label: '显示悬浮球控制台',
+      click: () => {
+        showFloatingBall();
+        toggleFloatingBallDevTools();
+      }
+    },
+    { type: 'separator' },
+    {
+      label: '退出',
+      click: () => {
+        app.quit();
+      }
+    }
+  ]);
 }
 
 let settingsWin = null;
@@ -127,4 +207,4 @@ function openSettingsWindow() {
   });
 }
 
-module.exports = { showContextMenu };
+module.exports = { showContextMenu, ensureTray, destroyTray };

@@ -6,19 +6,19 @@ const { log } = require('./logger');
 
 let updateCheckTimer = null;
 
-// GitHub 镜像列表（国内可用）
+// GitHub 镜像列表（国内可用，按速度排序）
 const MIRRORS = [
   'https://ghfast.top',
-  'https://gh-proxy.com',
-  'https://mirror.ghproxy.com'
+  'https://gh.idayer.com',
+  'https://gh-proxy.com'
 ];
 
 // 原始 GitHub URL
 const GITHUB_REPO = 'ChaoPhone/DeepSeek-Desktop';
 
-// 构建镜像 URL（latest.yml 路径）
+// 构建镜像 URL（目录路径，electron-updater 会自动追加 latest.yml）
 function buildMirrorUrl(baseUrl) {
-  return `${baseUrl}/https://github.com/${GITHUB_REPO}/releases/latest/download/latest.yml`;
+  return `${baseUrl}/https://github.com/${GITHUB_REPO}/releases/latest/download`;
 }
 
 function setupAutoUpdater() {
@@ -157,10 +157,10 @@ function checkForUpdates() {
 async function tryMirrorCheck(currentVersion, mirrorIndex) {
   if (mirrorIndex >= MIRRORS.length) {
     log('WARN', 'AutoUpdater 所有镜像失败尝试 GitHub 直连');
-    // 最后尝试 GitHub 直连
+    // 最后尝试 GitHub 直连（feed URL 只需目录路径，electron-updater 会自动追加 latest.yml）
     autoUpdater.setFeedURL({
       provider: 'generic',
-      url: `https://github.com/${GITHUB_REPO}/releases/latest/download/latest.yml`,
+      url: `https://github.com/${GITHUB_REPO}/releases/latest/download`,
       channel: 'latest'
     });
     autoUpdater.checkForUpdates().catch(err => {

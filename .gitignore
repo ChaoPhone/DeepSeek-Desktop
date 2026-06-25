@@ -27,3 +27,8 @@ Thumbs.db
 
 # Claude Code session files
 .claude/
+
+# Tooling metadata
+.omc/
+.reasonix/
+.trae/

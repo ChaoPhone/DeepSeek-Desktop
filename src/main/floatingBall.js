@@ -27,10 +27,10 @@ function getWindowSize() {
 function refreshBallWindow() {
   if (!ballWin || ballWin.isDestroyed()) return;
 
-  // 用最稳定的 hide/show 方法解决白条
   ballWin.setBackgroundColor('#00000000');
+  // Electron 没有 webContents.invalidate()，用 hide/show 强制触发重绘
   ballWin.hide();
-  ballWin.show();
+  ballWin.showInactive();
 }
 
 // 获取主球中心位置（从 ballPosition 获取的是主球中心位置）
@@ -173,7 +173,7 @@ function createFloatingBall() {
     }
   }, 3000);
 
-  // 鼠标穿透检测：检测主球和小球圆形范围
+  // 鼠标穿透检测：检测主球、小球圆形范围，以及主球到小球之间的移动走廊
   // 智能轮询：远离时 200ms，靠近时 50ms，降低 CPU 占用
   let mouseNearBall = false;
   const NEAR_DISTANCE = 200; // 靠近判定距离（px）
@@ -241,6 +241,18 @@ function createFloatingBall() {
       if (miniDx * miniDx + miniDy * miniDy <= miniRadius * miniRadius) {
         shouldCapture = true;
       }
+
+      // 主球和副球之间留出一条可捕获的移动走廊，避免透明区域过窄导致副球收起。
+      const corridorWidth = Math.max(14, ballSize * 0.28);
+      if (distanceToSegment(dx, dy, 0, 0, pos.x, pos.y) <= corridorWidth) {
+        const minX = Math.min(0, pos.x) - corridorWidth;
+        const maxX = Math.max(0, pos.x) + corridorWidth;
+        const minY = Math.min(0, pos.y) - corridorWidth;
+        const maxY = Math.max(0, pos.y) + corridorWidth;
+        if (dx >= minX && dx <= maxX && dy >= minY && dy <= maxY) {
+          shouldCapture = true;
+        }
+      }
     });
 
     ballWin.setIgnoreMouseEvents(!shouldCapture, { forward: true });
@@ -249,6 +261,45 @@ function createFloatingBall() {
   mouseCheckTimer = setInterval(checkMousePosition, 200);
 
   return ballWin;
+}
+
+function distanceToSegment(px, py, ax, ay, bx, by) {
+  const abx = bx - ax;
+  const aby = by - ay;
+  const apx = px - ax;
+  const apy = py - ay;
+  const abLenSq = abx * abx + aby * aby;
+
+  if (abLenSq === 0) {
+    return Math.hypot(px - ax, py - ay);
+  }
+
+  const t = Math.max(0, Math.min(1, (apx * abx + apy * aby) / abLenSq));
+  const closestX = ax + abx * t;
+  const closestY = ay + aby * t;
+  return Math.hypot(px - closestX, py - closestY);
+}
+
+function showFloatingBall() {
+  if (!ballWin || ballWin.isDestroyed()) return;
+  ballWin.showInactive();
+  updateAlwaysOnTop(get('ballAlwaysOnTop') !== false);
+}
+
+function hideFloatingBall() {
+  if (!ballWin || ballWin.isDestroyed()) return;
+  ballWin.hide();
+}
+
+function toggleFloatingBallDevTools() {
+  if (!ballWin || ballWin.isDestroyed()) return false;
+
+  if (ballWin.webContents.isDevToolsOpened()) {
+    ballWin.webContents.closeDevTools();
+  } else {
+    ballWin.webContents.openDevTools({ mode: 'detach' });
+  }
+  return true;
 }
 
 function getBallWindow() {
@@ -280,5 +331,8 @@ module.exports = {
   getBallWindow,
   updateBallSize,
   refreshBallWindow,
-  updateAlwaysOnTop
+  updateAlwaysOnTop,
+  showFloatingBall,
+  hideFloatingBall,
+  toggleFloatingBallDevTools
 };

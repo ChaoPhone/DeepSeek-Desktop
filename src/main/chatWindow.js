@@ -8,6 +8,7 @@ const { log } = require('./logger');
 const windows = new Map();
 const views = new Map();
 let nextId = 1;
+const CONTROL_BAR_HEIGHT = 36;
 
 // 为不同 AI 设置不同的 App User Model ID（让任务栏分开显示）
 const APP_MODEL_IDS = {
@@ -93,6 +94,7 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
     frame: false,
     transparent: false,
     backgroundMaterial: 'mica',
+    backgroundColor: '#1e1e2e',
     hasShadow: true,
     thickFrame: true,
     resizable: true,
@@ -140,7 +142,7 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
 
   // BrowserView位于拖动区域下方
   const [width, height] = win.getSize();
-  view.setBounds({ x: 0, y: 36, width: width, height: height - 36 });
+  layoutBrowserView(win, view, width, height);
   view.setAutoResize({ width: true, height: true });
   view.webContents.loadURL(aiConfig.url);
 
@@ -203,13 +205,11 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
 
   // 窗口大小变化时更新BrowserView
   win.on('resize', () => {
-    const [w, h] = win.getSize();
-    if (view && !view.webContents.isDestroyed()) {
-      view.setBounds({ x: 0, y: 36, width: w, height: h - 36 });
-    }
+    layoutBrowserView(win, view);
   });
 
   win.once('ready-to-show', () => {
+    layoutBrowserView(win, view);
     win.show();
     // 发送品牌色给控制栏渲染器
     if (aiConfig.brandColor) {
@@ -236,14 +236,28 @@ function openNewChatWindow(savedBounds = null, aiKey = null) {
 
   // 窗口最大化状态变化时通知控制栏更新图标（双击标题栏等触发）
   win.on('maximize', () => {
+    layoutBrowserView(win, view);
     win.webContents.send('maximize:update', true);
   });
 
   win.on('unmaximize', () => {
+    layoutBrowserView(win, view);
     win.webContents.send('maximize:update', false);
   });
 
   return id;
+}
+
+function layoutBrowserView(win, view, width = null, height = null) {
+  if (!win || win.isDestroyed() || !view || view.webContents.isDestroyed()) return;
+
+  const [w, h] = width && height ? [width, height] : win.getContentSize();
+  view.setBounds({
+    x: 0,
+    y: CONTROL_BAR_HEIGHT,
+    width: Math.max(1, w),
+    height: Math.max(1, h - CONTROL_BAR_HEIGHT)
+  });
 }
 
 function getAllChatWindows() {

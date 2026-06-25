@@ -144,6 +144,11 @@ function registerIpcHandlers() {
         refreshBallWindow();
       }
     }
+    // 实时应用置顶设置
+    if (key === 'ballAlwaysOnTop') {
+      const { updateAlwaysOnTop } = require('./floatingBall');
+      updateAlwaysOnTop(value !== false);
+    }
     return true;
   });
 
@@ -153,6 +158,11 @@ function registerIpcHandlers() {
     const ballWin = getBallWindow();
     if (ballWin && !ballWin.isDestroyed()) {
       ballWin.webContents.send('config:changed', get());
+    }
+    // 实时应用置顶设置
+    if (key === 'ballAlwaysOnTop') {
+      const { updateAlwaysOnTop } = require('./floatingBall');
+      updateAlwaysOnTop(value !== false);
     }
     return true;
   });
@@ -249,6 +259,105 @@ function registerIpcHandlers() {
     return isMaximized(win);
   });
 
+  // Explicit close — properly destroys BrowserView + BrowserWindow
+  ipcMain.handle('window:close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && !win.isDestroyed()) {
+      win.close();
+    }
+    return true;
+  });
+
+  // Toggle DevTools on the BrowserView (webpage content)
+  ipcMain.handle('window:toggle-devtools', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return false;
+    const view = getViewById(win.chatWindowId);
+    if (!view || view.webContents.isDestroyed()) return false;
+    if (view.webContents.isDevToolsOpened()) {
+      view.webContents.closeDevTools();
+    } else {
+      view.webContents.openDevTools({ mode: 'detach' });
+    }
+    return true;
+  });
+
+  // Web settings popup menu (compact, icon-only control)
+  ipcMain.on('window:show-web-settings', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return;
+    const view = getViewById(win.chatWindowId);
+
+    const changeZoom = (delta) => {
+      if (!view || view.webContents.isDestroyed()) return;
+      const factor = Math.max(0.5, Math.min(3.0, view.webContents.getZoomFactor() + delta));
+      view.webContents.setZoomFactor(factor);
+      set('zoomLevel', factor);
+    };
+
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: '显示网页控制台',
+      accelerator: 'F12',
+      click: () => {
+        if (view && !view.webContents.isDestroyed()) {
+          if (view.webContents.isDevToolsOpened()) {
+            view.webContents.closeDevTools();
+          } else {
+            view.webContents.openDevTools({ mode: 'detach' });
+          }
+        }
+      }
+    }));
+    menu.append(new MenuItem({ type: 'separator' }));
+    menu.append(new MenuItem({
+      label: '放大',
+      accelerator: 'Ctrl+=',
+      click: () => {
+        changeZoom(0.1);
+      }
+    }));
+    menu.append(new MenuItem({
+      label: '缩小',
+      accelerator: 'Ctrl+-',
+      click: () => {
+        changeZoom(-0.1);
+      }
+    }));
+    menu.append(new MenuItem({
+      label: '重置缩放',
+      accelerator: 'Ctrl+0',
+      click: () => {
+        if (view && !view.webContents.isDestroyed()) {
+          view.webContents.setZoomFactor(1.0);
+          set('zoomLevel', 1.0);
+        }
+      }
+    }));
+    menu.append(new MenuItem({ type: 'separator' }));
+    menu.append(new MenuItem({
+      label: '刷新页面',
+      accelerator: 'Ctrl+R',
+      click: () => {
+        if (view && !view.webContents.isDestroyed()) {
+          view.webContents.reload();
+        }
+      }
+    }));
+    menu.append(new MenuItem({
+      label: '清除本页缓存后刷新',
+      click: () => {
+        if (view && !view.webContents.isDestroyed()) {
+          view.webContents.session.clearCache().finally(() => {
+            if (!view.webContents.isDestroyed()) view.webContents.reload();
+          });
+        }
+      }
+    }));
+
+    menu.popup({ window: win });
+  });
+
   ipcMain.handle('window:reload', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return false;
@@ -341,39 +450,22 @@ function registerIpcHandlers() {
   });
 }
 
-// 存储窗口最大化前的 bounds（放在模块级别，不在函数内）
-const savedWindowBounds = new Map();
-
 function toggleMaximize(win) {
-  if (!win) return false;
+  if (!win || win.isDestroyed()) return false;
 
-  const winId = win.id;
-
-  if (savedWindowBounds.has(winId)) {
-    // 还原窗口
-    const bounds = savedWindowBounds.get(winId);
-    win.setSize(bounds.width, bounds.height);
-    win.setPosition(bounds.x, bounds.y);
-    savedWindowBounds.delete(winId);
-    win.webContents.send('maximize:update', false);
+  // Use native Electron maximize/unmaximize for reliable state + BrowserView resize
+  if (win.isMaximized()) {
+    win.unmaximize();
     return false;
   } else {
-    // 最大化窗口：使用窗口所在的显示器（多屏适配）
-    savedWindowBounds.set(winId, win.getBounds());
-    // 获取窗口当前所在显示器，而非主显示器
-    const winBounds = win.getBounds();
-    const display = screen.getDisplayNearestPoint({ x: winBounds.x + winBounds.width / 2, y: winBounds.y + winBounds.height / 2 });
-    const workArea = display.workArea;
-    win.setSize(workArea.width, workArea.height);
-    win.setPosition(workArea.x, workArea.y);
-    win.webContents.send('maximize:update', true);
+    win.maximize();
     return true;
   }
 }
 
 function isMaximized(win) {
-  if (!win) return false;
-  return savedWindowBounds.has(win.id);
+  if (!win || win.isDestroyed()) return false;
+  return win.isMaximized();
 }
 
 module.exports = { registerIpcHandlers, toggleMaximize, isMaximized };
